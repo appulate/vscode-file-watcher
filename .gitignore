@@ -1,0 +1,5 @@
+.idea
+*.orig
+node_modules
+@compiled
+@local-types

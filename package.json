@@ -1,0 +1,106 @@
+{
+	"name": "filewatcher",
+	"displayName": "File Watcher",
+	"description": "File Watcher for Visual Studio Code: watch events onSaveDocument, onFolderChange",
+	"icon": "icons/lightning.png",
+	"galleryBanner": {
+		"color": "#E4F2FF",
+		"theme": "light"
+	},
+	"publisher": "AppulateInc",
+	"license": "MIT",
+	"version": "1.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/spostolsky/fileWatcher.git"
+	},
+	"engines": {
+		"vscode": "^1.32.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": ["run script", "folder watch", "case insensitive", "on change", "on save"],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.enableFileWatcher",
+				"title": "File Watcher: Enable"
+			},
+			{
+				"command": "extension.disableFileWatcher",
+				"title": "File Watcher: Disable"
+			}
+		],
+		"configuration": {
+			"title": "File Watcher command configuration.",
+			"type": "object",
+			"properties": {
+				"appulateinc.filewatcher": {
+					"type": "object",
+					"properties": {
+						"autoClearConsole": {
+							"type": "boolean",
+							"description": "Automatically clear the console on each save before running commands.",
+							"default": false
+						},
+						"shell": {
+							"type": "string",
+							"description": "Shell to execute the command with (gets passed to child_process.exec as an options arg. e.g. child_process(cmd, { shell })."
+						},
+						"commands": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"match": {
+										"type": "string",
+										"description": "Regex for matching files to run commands on \n\nNOTE: This is a regex and not a file path spce, so backslashes have to be escaped. They also have to be escaped in json strings, so you may have to double escape them in certain cases such as targetting contents of folders.\n\ne.g.\n\"match\": \"some\\\\\\\\directory\\\\\\\\.*\"",
+										"default": ".*"
+									},
+									"notMatch": {
+										"type": "string",
+										"description": "Regex for matching files *not* to run commands on.",
+										"default": ".*"
+									},
+									"cmd": {
+										"type": "string",
+										"description": "Command to execute on save.",
+										"default": "echo ${file}"
+									},
+									"isAsync": {
+										"type": "boolean",
+										"description": "Run command asynchronously.",
+										"default": false
+									},
+									"event": {
+										"type": "string",
+										"description": "events onFileChange, onFolderChange",
+										"default": "onSaveDocument"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install"
+	},
+	"devDependencies": {
+		"vscode": "^1.1.28",
+		"tslint": "^5.16.0",
+		"tslint-eslint-rules": "^5.4.0",
+		"typescript": "^3.4.3",
+		"@types/node": "^10.12.21"
+	}
+}
