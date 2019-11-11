@@ -115,7 +115,7 @@ class FileWatcherExtension {
 			return;
 		}
 
-		this.showStatusMessage("Running commands...");
+		this.showStatusMessage("[Event handled]");
 		// build our commands by replacing parameters with values
 		const commands: ICommand[] = [];
 		for (const cfg of commandConfigs) {
@@ -133,7 +133,8 @@ class FileWatcherExtension {
 			commands.push({
 				cmd: cmdStr,
 				isAsync: !!cfg.isAsync,
-				event
+				event,
+				match: cfg.match
 			});
 		}
 
@@ -144,12 +145,14 @@ class FileWatcherExtension {
 		if (commands.length) {
 			const cfg: ICommand = commands.shift()!;
 
-			this.showOutputMessage(`*** cmd start: ${cfg.cmd}`);
+			this.showOutputMessage(`[${cfg.event}] for pattern "${cfg.match}" started`);
+			this.showOutputMessage(`[cmd] ${cfg.cmd}`);
 
 			const child: ChildProcess = exec(cfg.cmd, this._execOption);
-			child.stdout.on("data", data => this._outputChannel.append(data));
-			child.stderr.on("data", data => this._outputChannel.append(data));
+			child.stdout?.on("data", data => this._outputChannel.append(data));
+			child.stderr?.on("data", data => this._outputChannel.append(`[error] ${data}`));
 			child.on("exit", () => {
+				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`);
 				if (!cfg.isAsync) {
 					this._runCommands(commands);
 				}
@@ -158,8 +161,6 @@ class FileWatcherExtension {
 			if (cfg.isAsync) {
 				this._runCommands(commands);
 			}
-		} else {
-			this.showStatusMessage("File Watcher done.");
 		}
 	}
 

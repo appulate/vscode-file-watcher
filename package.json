@@ -1,18 +1,18 @@
 {
 	"name": "filewatcher",
 	"displayName": "File Watcher",
-	"description": "File Watcher for Visual Studio Code: watch events onSaveDocument, onFolderChange",
+	"description": "Watch file or folder changes, and run matched command scripts.",
 	"icon": "icons/lightning.png",
 	"galleryBanner": {
 		"color": "#E4F2FF",
 		"theme": "light"
 	},
-	"publisher": "AppulateInc",
+	"publisher": "Appulate",
 	"license": "MIT",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/spostolsky/fileWatcher.git"
+		"url": "https://github.com/appulate/vscode-file-watcher.git"
 	},
 	"engines": {
 		"vscode": "^1.32.0"
@@ -88,7 +88,22 @@
 					}
 				}
 			}
-		}
+		},
+		"languages": [
+			{
+			  "id": "file-watcher-output",
+			  "mimetypes": [
+				"text/x-code-output"
+			  ]
+			}
+		  ],
+		  "grammars": [
+			{
+			  "language": "file-watcher-output",
+			  "scopeName": "file-watcher.output",
+			  "path": "./syntaxes/file-watcher-output.tmLanguage"
+			}
+		  ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -97,10 +112,10 @@
 		"postinstall": "node ./node_modules/vscode/bin/install"
 	},
 	"devDependencies": {
-		"vscode": "^1.1.28",
-		"tslint": "^5.16.0",
+		"vscode": "^1.1.36",
+		"tslint": "^5.20.1",
 		"tslint-eslint-rules": "^5.4.0",
-		"typescript": "^3.4.3",
-		"@types/node": "^10.12.21"
+		"typescript": "^3.7.2",
+		"@types/node": "^12.12.7"
 	}
 }
