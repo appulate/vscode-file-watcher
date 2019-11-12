@@ -1,98 +1,101 @@
 {
-	"extends": "tslint:latest",
-	"rulesDirectory": [
-	  "node_modules/tslint-eslint-rules/dist/rules"
+	"extends": [
+		"tslint:latest",
+		"tslint-eslint-rules"
 	],
 	"rules": {
-	  "arrow-parens": [true, "ban-single-arg-parens"],
-	  "ban-ts-ignore": true,
-	  "no-unused-expression": true,
-	  "no-duplicate-variable": true,
-	  "curly": true,
-	  "class-name": true,
-	  "semicolon": [
-		true,
-		"always"
-	  ],
-	  "triple-equals": [
-		true,
-		"allow-null-check"
-	  ],
-	  "no-any": true,
-	  "no-magic-numbers": true,
-	  "no-reference": true,
-	  "indent": [
-		true,
-		"tabs"
-	  ],
-	  "no-multi-spaces": true,
-	  "object-literal-sort-keys": false,
-	  "no-duplicate-imports": false,
-	  "no-implicit-dependencies": false,
-	  "prefer-const": true,
-	  "trailing-comma": [
-		true,
-		{
-		  "multiline": "never",
-		  "singleline": "never"
-		}
-	  ],
-	  "typedef": [
-		true,
-		"call-signature",
-		"parameter",
-		"property-declaration",
-		"variable-declaration"
-	  ],
-	  "variable-name": [
-		true,
-		"ban-keywords",
-		"check-format",
-		"allow-leading-underscore"
-	  ],
-	  "whitespace": [
-		true,
-		"check-module",
-		"check-decl",
-		"check-operator",
-		"check-separator"
-	  ]
+		"arrow-parens": [
+			true,
+			"ban-single-arg-parens"
+		],
+		"ban-ts-ignore": true,
+		"no-unused-expression": true,
+		"no-duplicate-variable": true,
+		"curly": true,
+		"class-name": true,
+		"semicolon": [
+			true,
+			"always"
+		],
+		"triple-equals": [
+			true,
+			"allow-null-check"
+		],
+		"no-any": true,
+		"no-magic-numbers": true,
+		"no-reference": true,
+		"indent": [
+			true,
+			"tabs"
+		],
+		"no-multi-spaces": true,
+		"object-literal-sort-keys": false,
+		"no-duplicate-imports": false,
+		"no-implicit-dependencies": false,
+		"prefer-const": true,
+		"trailing-comma": [
+			true,
+			{
+				"multiline": "never",
+				"singleline": "never"
+			}
+		],
+		"typedef": [
+			true,
+			"call-signature",
+			"parameter",
+			"property-declaration",
+			"variable-declaration"
+		],
+		"variable-name": [
+			true,
+			"ban-keywords",
+			"check-format",
+			"allow-leading-underscore"
+		],
+		"whitespace": [
+			true,
+			"check-module",
+			"check-decl",
+			"check-operator",
+			"check-separator"
+		]
 	},
 	"jsRules": {
-	  "indent": [
-		true,
-		"tabs"
-	  ],
-	  "no-duplicate-variable": true,
-	  "no-eval": true,
-	  "no-trailing-whitespace": true,
-	  "one-line": [
-		true,
-		"check-open-brace",
-		"check-whitespace"
-	  ],
-	  "quotemark": [
-		true,
-		"double"
-	  ],
-	  "semicolon": [
-		false
-	  ],
-	  "triple-equals": [
-		true,
-		"allow-null-check"
-	  ],
-	  "variable-name": [
-		true,
-		"ban-keywords"
-	  ],
-	  "whitespace": [
-		true,
-		"check-branch",
-		"check-decl",
-		"check-operator",
-		"check-separator",
-		"check-type"
-	  ]
+		"indent": [
+			true,
+			"tabs"
+		],
+		"no-duplicate-variable": true,
+		"no-eval": true,
+		"no-trailing-whitespace": true,
+		"one-line": [
+			true,
+			"check-open-brace",
+			"check-whitespace"
+		],
+		"quotemark": [
+			true,
+			"double"
+		],
+		"semicolon": [
+			false
+		],
+		"triple-equals": [
+			true,
+			"allow-null-check"
+		],
+		"variable-name": [
+			true,
+			"ban-keywords"
+		],
+		"whitespace": [
+			true,
+			"check-branch",
+			"check-decl",
+			"check-operator",
+			"check-separator",
+			"check-type"
+		]
 	}
-  }
+}

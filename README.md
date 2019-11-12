@@ -37,32 +37,29 @@ Samples
 **File content** change tracking example.
     Configuration in \.vscode\settings.json
 
-    "appulateinc.filewatcher": {
-		"commands": [
-			{
-				"match": "\\.ts*",
-				"isAsync": true,
-				"cmd": "echo '${file} file content Changed'",
-				"event": "onSaveDocument"
-			}		
-		]
-	},
+    "filewatcher.commands": [
+		{
+			"match": "\\.ts*",
+			"isAsync": true,
+			"cmd": "echo '${file} file content Changed'",
+			"event": "onSaveDocument"
+		}		
+	]
+	
 
-![ screencast ](https://raw.githubusercontent.com/spostolsky/fileWatcher/master/icons/fileChange.gif)
+![ screencast ](media/file-change.gif)
 
 **Folder content** change tracking example.
     Configuration in \.vscode\settings.json
 
-    "appulateinc.filewatcher": {
-		"commands": [
-			{
-				"match": "\\.*",
-				"isAsync": true,
-				"cmd": "echo '${file} folder content Changed'",
-				"event": "onFolderChange"
-			}		
-		]
-	},
+    "filewatcher.commands": [
+		{
+			"match": "\\.*",
+			"isAsync": true,
+			"cmd": "echo '${file} folder content Changed'",
+			"event": "onFolderChange"
+		}		
+	]
+	
 
-![ screencast ](https://raw.githubusercontent.com/spostolsky/fileWatcher/master/icons/folderChange.gif)
-
+![ screencast ](media/folder-change.gif)

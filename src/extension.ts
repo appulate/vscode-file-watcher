@@ -1,16 +1,15 @@
 import { ChildProcess, exec } from "child_process";
 import * as path from "path";
 import * as vscode from "vscode";
+import { trueCasePathSync } from "true-case-path";
 
 export function activate(context: vscode.ExtensionContext): void {
-
 	const extension: FileWatcherExtension = new FileWatcherExtension(context);
 	extension.showOutputMessage();
 
 	vscode.workspace.onDidChangeConfiguration(() => {
-		const disposeStatus: vscode.Disposable = extension.showStatusMessage("File Watcher: Reloading config.");
+		extension.showStatusMessage("File Watcher: Reloading config.");
 		extension.loadConfig();
-		disposeStatus.dispose();
 	});
 
 	vscode.commands.registerCommand("extension.enableFileWatcher", () => {
@@ -22,13 +21,13 @@ export function activate(context: vscode.ExtensionContext): void {
 	});
 
 	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-		extension.eventHandler({ event: "onFileChange", fileName: document.fileName });
+		extension.eventHandler({ event: "onFileChange", fileName: trueCasePathSync(document.fileName) });
 	});
 
 	const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher("**/*", false, false, false);
 
 	watcher.onDidChange((uri: vscode.Uri) => {
-		extension.eventHandler({ event: "onFolderChange", fileName: uri.fsPath });
+		extension.eventHandler({ event: "onFolderChange", fileName: trueCasePathSync(uri.fsPath) });
 	});
 }
 
@@ -53,19 +52,30 @@ interface IEventHandler {
 	fileName: string;
 }
 
+const enum colors {
+	error = "#030101",
+	normal = "#ffffff"
+};
+
 class FileWatcherExtension {
 	private _outputChannel: vscode.OutputChannel;
 	private _context: vscode.ExtensionContext;
-	private _config!: IConfig;
+	private _config!: IConfig;	
+	private _statusBarItem: vscode.StatusBarItem;
 
 	constructor(context: vscode.ExtensionContext) {
 		this._context = context;
 		this._outputChannel = vscode.window.createOutputChannel("File Watcher");
 		this.loadConfig();
+		this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1000);
 	}
-
+	
 	public loadConfig(): void {
-		this._config = vscode.workspace.getConfiguration("appulateinc.filewatcher") as IConfig;
+		const configName = ["filewatcher", "appulateinc.filewatcher"].filter(name => {
+			const commands = vscode.workspace.getConfiguration(name).get<ICommand[]>("commands");
+			return commands && commands.length > 0;
+		});
+		this._config = vscode.workspace.getConfiguration(configName[0]) as IConfig;
 	}
 
 	/**
@@ -77,12 +87,21 @@ class FileWatcherExtension {
 	}
 
 	/**
+	 * Show message in status bar
+	 */
+	public showStatusBarMessage(message: string, isError?: boolean): void {
+		this._statusBarItem.color = isError ? colors.error : colors.normal;
+		this._statusBarItem.text = message;
+		this._statusBarItem.show();
+	}
+
+	/**
 	 * Show message in status bar and output channel.
 	 * Return a disposable to remove status bar message.
 	 */
-	public showStatusMessage(message: string): vscode.Disposable {
+	public showStatusMessage(message: string): void {
 		this.showOutputMessage(message);
-		return vscode.window.setStatusBarMessage(message);
+		this.showStatusBarMessage(message);
 	}
 
 	public eventHandler({ event, fileName }: IEventHandler): void {
@@ -114,17 +133,20 @@ class FileWatcherExtension {
 		if (commandConfigs.length === 0) {
 			return;
 		}
-
-		this.showStatusMessage("[Event handled]");
+		this.showOutputMessage(" ");
+		this.showOutputMessage("[Event handled]....");
+		this.showStatusBarMessage("Running commands...");
+		
 		// build our commands by replacing parameters with values
 		const commands: ICommand[] = [];
 		for (const cfg of commandConfigs) {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(fileName);
+			const rootPath = trueCasePathSync(vscode.workspace.rootPath);
 
 			cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
-			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${vscode.workspace.rootPath}`);
+			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);			
 			cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(fileName)}`);
 			cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(fileName)}`);
 			cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
@@ -150,7 +172,10 @@ class FileWatcherExtension {
 
 			const child: ChildProcess = exec(cfg.cmd, this._execOption);
 			child.stdout?.on("data", data => this._outputChannel.append(data));
-			child.stderr?.on("data", data => this._outputChannel.append(`[error] ${data}`));
+			child.stderr?.on("data", data => {
+				this.showOutputMessage(`[error] ${data}`);
+				this.showStatusBarMessage(`$(stop) File Watcher Error`, true);
+			});
 			child.on("exit", () => {
 				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`);
 				if (!cfg.isAsync) {

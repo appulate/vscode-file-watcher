@@ -2,30 +2,51 @@
 	"name": "filewatcher",
 	"displayName": "File Watcher",
 	"description": "Watch file or folder changes, and run matched command scripts.",
-	"icon": "icons/lightning.png",
+	"icon": "media/lightning.png",
 	"galleryBanner": {
 		"color": "#E4F2FF",
 		"theme": "light"
 	},
-	"publisher": "Appulate",
+	"publisher": "AppulateInc",
 	"license": "MIT",
 	"version": "1.0.2",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/appulate/vscode-file-watcher.git"
+		"url": "https://github.com/spostolsky/fileWatcher.git"
 	},
 	"engines": {
-		"vscode": "^1.32.0"
+		"vscode": "^1.39.0"
 	},
 	"categories": [
 		"Other"
 	],
-	"keywords": ["run script", "folder watch", "case insensitive", "on change", "on save"],
+	"keywords": [
+		"run script",
+		"folder watch",
+		"case insensitive",
+		"on change",
+		"on save"
+	],
 	"activationEvents": [
 		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"languages": [
+			{
+				"id": "file-watcher-output",
+				"mimetypes": [
+					"text/x-code-output"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "file-watcher-output",
+				"scopeName": "file-watcher.output",
+				"path": "./syntaxes/file-watcher-output.tmLanguage"
+			}
+		],
 		"commands": [
 			{
 				"command": "extension.enableFileWatcher",
@@ -40,8 +61,63 @@
 			"title": "File Watcher command configuration.",
 			"type": "object",
 			"properties": {
+				"filewatcher.autoClearConsole": {
+					"type": "boolean",
+					"description": "Automatically clear the console on each save before running commands.",
+					"enum": [
+						true,
+						false
+					]
+				},
+				"filewatcher.shell": {
+					"type": "number",
+					"description": "Shell to execute the command with (gets passed to child_process.exec as an options arg. e.g. child_process(cmd, { shell })."
+				},
+				"filewatcher.commands": {
+					"description": "array of commands",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"match": {
+								"type": "string",
+								"description": "Regex for matching files to run commands on \n\nNOTE: This is a regex and not a file path spce, so backslashes have to be escaped. They also have to be escaped in json strings, so you may have to double escape them in certain cases such as targetting contents of folders.\n\ne.g.\n\"match\": \"some\\\\\\\\directory\\\\\\\\.*\"",
+								"default": ".*"
+							},
+							"notMatch": {
+								"type": "string",
+								"description": "Regex for matching files *not* to run commands on.",
+								"default": ".*"
+							},
+							"cmd": {
+								"type": "string",
+								"description": "Command to execute on save.",
+								"default": "echo ${file}"
+							},
+							"isAsync": {
+								"type": "boolean",
+								"description": "Run command asynchronously.",
+								"enum": [
+									true,
+									false
+								],
+								"default": false
+							},
+							"event": {
+								"type": "string",
+								"description": "events onFileChange, onFolderChange",
+								"enum": [
+									"onFileChange",
+									"onFolderChange"
+								]
+							}
+						}
+					}
+				},
 				"appulateinc.filewatcher": {
 					"type": "object",
+					"deprecationMessage": "This setting has been deprecated. See: https://github.com/appulate/vscode-file-watcher#samples",
+					"description": "appulateinc.filewatcher configuration object",
 					"properties": {
 						"autoClearConsole": {
 							"type": "boolean",
@@ -80,7 +156,7 @@
 									"event": {
 										"type": "string",
 										"description": "events onFileChange, onFolderChange",
-										"default": "onSaveDocument"
+										"default": "onFileChange"
 									}
 								}
 							}
@@ -88,34 +164,19 @@
 					}
 				}
 			}
-		},
-		"languages": [
-			{
-			  "id": "file-watcher-output",
-			  "mimetypes": [
-				"text/x-code-output"
-			  ]
-			}
-		  ],
-		  "grammars": [
-			{
-			  "language": "file-watcher-output",
-			  "scopeName": "file-watcher.output",
-			  "path": "./syntaxes/file-watcher-output.tmLanguage"
-			}
-		  ]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"watch": "tsc -watch"
 	},
 	"devDependencies": {
-		"vscode": "^1.1.36",
+		"@types/node": "^12.12.6",
+		"@types/vscode": "^1.39.0",
 		"tslint": "^5.20.1",
 		"tslint-eslint-rules": "^5.4.0",
 		"typescript": "^3.7.2",
-		"@types/node": "^12.12.7"
+		"true-case-path": "^2.2.1"
 	}
 }
