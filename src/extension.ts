@@ -52,11 +52,6 @@ interface IEventHandler {
 	fileName: string;
 }
 
-const enum colors {
-	error = "#030101",
-	normal = "#ffffff"
-};
-
 class FileWatcherExtension {
 	private _outputChannel: vscode.OutputChannel;
 	private _context: vscode.ExtensionContext;
@@ -89,9 +84,10 @@ class FileWatcherExtension {
 	/**
 	 * Show message in status bar
 	 */
-	public showStatusBarMessage(message: string, isError?: boolean): void {
-		this._statusBarItem.color = isError ? colors.error : colors.normal;
-		this._statusBarItem.text = message;
+	public showStatusBarError(): void {
+		const stopIcon = "$(stop)";
+		this._statusBarItem.color = "red";
+		this._statusBarItem.text = `${stopIcon} File Watcher Error`;
 		this._statusBarItem.show();
 	}
 
@@ -101,7 +97,9 @@ class FileWatcherExtension {
 	 */
 	public showStatusMessage(message: string): void {
 		this.showOutputMessage(message);
-		this.showStatusBarMessage(message);
+		this._statusBarItem.color = "white";		
+		this._statusBarItem.text = message;
+		this._statusBarItem.show();
 	}
 
 	public eventHandler({ event, fileName }: IEventHandler): void {
@@ -133,9 +131,8 @@ class FileWatcherExtension {
 		if (commandConfigs.length === 0) {
 			return;
 		}
-		this.showOutputMessage(" ");
-		this.showOutputMessage("[Event handled]....");
-		this.showStatusBarMessage("Running commands...");
+		
+		this.showStatusMessage("[Event handled]....");
 		
 		// build our commands by replacing parameters with values
 		const commands: ICommand[] = [];
@@ -143,7 +140,7 @@ class FileWatcherExtension {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(fileName);
-			const rootPath = trueCasePathSync(vscode.workspace.rootPath);
+			const rootPath = trueCasePathSync(vscode.workspace.rootPath || "");
 
 			cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
 			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);			
@@ -174,7 +171,7 @@ class FileWatcherExtension {
 			child.stdout?.on("data", data => this._outputChannel.append(data));
 			child.stderr?.on("data", data => {
 				this.showOutputMessage(`[error] ${data}`);
-				this.showStatusBarMessage(`$(stop) File Watcher Error`, true);
+				this.showStatusBarError();
 			});
 			child.on("exit", () => {
 				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`);

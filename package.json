@@ -12,7 +12,7 @@
 	"version": "1.0.2",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/spostolsky/fileWatcher.git"
+		"url": "https://github.com/appulate/vscode-file-watcher.git"
 	},
 	"engines": {
 		"vscode": "^1.39.0"
