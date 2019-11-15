@@ -1,5 +1,5 @@
 {
-	"name": "filewatcher",
+	"name": "vscode-file-watcher",
 	"displayName": "File Watcher",
 	"description": "Watch file or folder changes, and run matched command scripts.",
 	"icon": "media/lightning.png",
@@ -7,7 +7,7 @@
 		"color": "#E4F2FF",
 		"theme": "light"
 	},
-	"publisher": "AppulateInc",
+	"publisher": "appulate",
 	"license": "MIT",
 	"version": "1.0.2",
 	"repository": {
