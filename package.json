@@ -31,7 +31,18 @@
 		"*"
 	],
 	"main": "./out/extension.js",
-	"contributes": {
+	"contributes": {		
+		"colors": [
+			{
+				"id": "filewatcher.error",
+				"description": "Color for error message in the status bar.",
+				"defaults": {
+					"dark": "#F5ED39",
+					"light": "#F5ED39",
+					"highContrast": "#F5ED39"
+				}
+			}
+		],
 		"languages": [
 			{
 				"id": "file-watcher-output",

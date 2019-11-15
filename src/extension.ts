@@ -86,7 +86,7 @@ class FileWatcherExtension {
 	 */
 	public showStatusBarError(): void {
 		const stopIcon = "$(stop)";
-		this._statusBarItem.color = "red";
+		this._statusBarItem.color = new vscode.ThemeColor("filewatcher.error");
 		this._statusBarItem.text = `${stopIcon} File Watcher Error`;
 		this._statusBarItem.show();
 	}
