@@ -31,7 +31,7 @@
 		"*"
 	],
 	"main": "./out/extension.js",
-	"contributes": {		
+	"contributes": {
 		"colors": [
 			{
 				"id": "filewatcher.error",
@@ -74,11 +74,7 @@
 			"properties": {
 				"filewatcher.autoClearConsole": {
 					"type": "boolean",
-					"description": "Automatically clear the console on each save before running commands.",
-					"enum": [
-						true,
-						false
-					]
+					"description": "Automatically clear the console on each save before running commands."
 				},
 				"filewatcher.shell": {
 					"type": "number",
@@ -107,12 +103,7 @@
 							},
 							"isAsync": {
 								"type": "boolean",
-								"description": "Run command asynchronously.",
-								"enum": [
-									true,
-									false
-								],
-								"default": false
+								"description": "Run command asynchronously."
 							},
 							"event": {
 								"type": "string",
