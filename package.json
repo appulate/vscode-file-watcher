@@ -1,5 +1,5 @@
 {
-	"name": "vscode-file-watcher",
+	"name": "filewatcher",
 	"displayName": "File Watcher",
 	"description": "Watch file or folder changes, and run matched command scripts.",
 	"icon": "media/lightning.png",

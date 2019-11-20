@@ -33,12 +33,12 @@
                     <key>1</key>
                     <dict>
                         <key>name</key>
-                        <string>string</string>
+                        <string>token.info-token</string>
                     </dict>
                     <key>2</key>
                     <dict>
                         <key>name</key>
-                        <string>string</string>
+                        <string>token.info-token</string>
                     </dict>
                 </dict>
                 <key>match</key>
