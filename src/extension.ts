@@ -59,7 +59,6 @@ class FileWatcherExtension {
 	private _config!: IConfig;
 	private _statusBar: StatusBar;
 
-
 	constructor(context: vscode.ExtensionContext) {
 		this._context = context;
 		this._outputChannel = vscode.window.createOutputChannel("File Watcher");
@@ -128,18 +127,19 @@ class FileWatcherExtension {
 		for (const cfg of commandConfigs) {
 			let cmdStr: string = cfg.cmd;
 
-			const extName: string = path.extname(documentUri.fsPath);
+			const fileName: string = trueCasePathSync(documentUri.fsPath);
+			const extName: string = path.extname(fileName);
 			const workspaceFolders = vscode.workspace.workspaceFolders;
 			const rootPath = trueCasePathSync(workspaceFolders?.[0]?.uri.fsPath ?? "");
 			const currentWorkspace = trueCasePathSync(vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "");
 
-			cmdStr = cmdStr.replace(/\${file}/g, `${documentUri.fsPath}`);
+			cmdStr = cmdStr.replace(/\${file}/g, `${fileName}`);
 			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);			
 			cmdStr = cmdStr.replace(/\${currentWorkspace}/g, `${currentWorkspace}`);
-			cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(documentUri.fsPath)}`);
-			cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(documentUri.fsPath)}`);
+			cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(fileName)}`);
+			cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(fileName)}`);
 			cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
-			cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(documentUri.fsPath, extName)}`);
+			cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(fileName, extName)}`);
 
 			commands.push({
 				cmd: cmdStr,
