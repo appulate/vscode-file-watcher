@@ -4,7 +4,7 @@ This extension allows configuring commands that get run whenever a file is saved
 
 ## Features
 * Following two events: onSaveDocument and onFolderChange:
-    * **onSaveDocument** - allows to track changes to the contents of an existing file
+    * **onFileChange** - allows to track changes to the contents of an existing file
     * **onFolderChange** - allows to track the deletion, addition and modification of files
 * **case insensitive** workspace root folder
 * Configure multiple commands that run when the event happened
@@ -37,15 +37,17 @@ Samples
 
 **File content** change tracking example.
     Configuration in \.vscode\settings.json
-
-    "filewatcher.commands": [
-		{
-			"match": "\\.ts*",
-			"isAsync": true,
-			"cmd": "echo '${file} file content Changed'",
-			"event": "onSaveDocument"
-		}		
-	]
+	
+	{
+		"filewatcher.commands": [
+			{
+				"match": "\\.ts*",
+				"isAsync": true,
+				"cmd": "echo '${file} file content Changed'",
+				"event": "onFileChange"
+			}		
+		]
+	}
 	
 
 ![ screencast ](media/file-change.gif)
@@ -53,14 +55,15 @@ Samples
 **Folder content** change tracking example.
     Configuration in \.vscode\settings.json
 
-    "filewatcher.commands": [
-		{
-			"match": "\\.*",
-			"isAsync": true,
-			"cmd": "echo '${file} folder content Changed'",
-			"event": "onFolderChange"
-		}		
-	]
-	
+	{
+    	"filewatcher.commands": [
+			{
+				"match": "\\.*",
+				"isAsync": true,
+				"cmd": "echo '${file} folder content Changed'",
+				"event": "onFolderChange"
+			}		
+		]
+	}
 
 ![ screencast ](media/folder-change.gif)

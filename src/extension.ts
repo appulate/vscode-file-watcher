@@ -1,16 +1,17 @@
 import { ChildProcess, exec } from "child_process";
 import * as path from "path";
+// import { trueCasePathSync } from "true-case-path";
 import * as vscode from "vscode";
-import { trueCasePathSync } from "true-case-path";
 import StatusBar from "./status-bar";
 
 export function activate(context: vscode.ExtensionContext): void {
 	const extension: FileWatcherExtension = new FileWatcherExtension(context);
-	extension.showOutputMessage();
+	extension.showEnabledState();
 
 	vscode.workspace.onDidChangeConfiguration(() => {
-		extension.showStatusMessage("File Watcher: Reloading config.");
 		extension.loadConfig();
+		extension.showStatusMessage("config reloaded");
+		extension.showOutputMessage("[Config reloaded]");
 	});
 
 	vscode.commands.registerCommand("extension.enableFileWatcher", () => {
@@ -59,27 +60,29 @@ class FileWatcherExtension {
 	private _config!: IConfig;
 	private _statusBar: StatusBar;
 
-
 	constructor(context: vscode.ExtensionContext) {
 		this._context = context;
 		this._outputChannel = vscode.window.createOutputChannel("File Watcher");
 		this.loadConfig();
 		this._statusBar = new StatusBar();
 	}
-	
+
 	public loadConfig(): void {
-		const configName = ["filewatcher", "appulateinc.filewatcher"].filter(name => {
-			const commands = vscode.workspace.getConfiguration(name).get<ICommand[]>("commands");
+		const configName: string[] = ["filewatcher", "appulateinc.filewatcher"].filter(name => {
+			const commands: ICommand[] | undefined = vscode.workspace.getConfiguration(name).get<ICommand[]>("commands");
 			return commands && commands.length > 0;
 		});
 		this._config = vscode.workspace.getConfiguration(configName[0]) as IConfig;
 	}
 
+	public showEnabledState(): void {
+		this._outputChannel.appendLine(`File Watcher ${this.isEnabled ? "enabled" : "disabled"}.`);
+	}
+
 	/**
 	 * Show message in output channel
 	 */
-	public showOutputMessage(message?: string): void {
-		message = message || `File Watcher ${this.isEnabled ? "enabled" : "disabled"}.`;
+	public showOutputMessage(message: string): void {
 		this._outputChannel.appendLine(message);
 	}
 
@@ -87,8 +90,7 @@ class FileWatcherExtension {
 	 * Show message in status bar and output channel.
 	 */
 	public showStatusMessage(message: string): void {
-		this.showOutputMessage(message);
-		this._statusBar.showMessage(message);
+		this._statusBar.showMessage(`FileWatcher: ${message}`);
 	}
 
 	public eventHandler({ event, documentUri }: IEventHandler): void {
@@ -96,8 +98,12 @@ class FileWatcherExtension {
 			this._outputChannel.clear();
 		}
 
-		if (!this.isEnabled || this.commands.length === 0) {
-			this.showOutputMessage();
+		if (!this.isEnabled) {
+			return;
+		}
+
+		if (this.commands.length === 0) {
+			this.showOutputMessage("[error] Settings sections are empty");
 			return;
 		}
 
@@ -120,21 +126,22 @@ class FileWatcherExtension {
 		if (commandConfigs.length === 0) {
 			return;
 		}
-		
-		this.showStatusMessage("[Event handled]....");
-		
+
+		this.showOutputMessage("");
+		this.showOutputMessage("[Event handled] ...");
+
 		// build our commands by replacing parameters with values
 		const commands: ICommand[] = [];
 		for (const cfg of commandConfigs) {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(documentUri.fsPath);
-			const workspaceFolders = vscode.workspace.workspaceFolders;
-			const rootPath = trueCasePathSync(workspaceFolders?.[0]?.uri.fsPath ?? "");
-			const currentWorkspace = trueCasePathSync(vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "");
+			const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+			const rootPath: string = workspaceFolders?.[0]?.uri.fsPath ?? "";
+			const currentWorkspace: string = vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
 
 			cmdStr = cmdStr.replace(/\${file}/g, `${documentUri.fsPath}`);
-			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);			
+			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);
 			cmdStr = cmdStr.replace(/\${currentWorkspace}/g, `${currentWorkspace}`);
 			cmdStr = cmdStr.replace(/\${fileBasename}/g, `${path.basename(documentUri.fsPath)}`);
 			cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(documentUri.fsPath)}`);
@@ -155,6 +162,8 @@ class FileWatcherExtension {
 	private _runCommands(commands: ICommand[]): void {
 		if (commands.length) {
 			const cfg: ICommand = commands.shift()!;
+
+			this.showStatusMessage(cfg.event);
 
 			this.showOutputMessage(`[${cfg.event}] for pattern "${cfg.match}" started`);
 			this.showOutputMessage(`[cmd] ${cfg.cmd}`);
@@ -187,7 +196,7 @@ class FileWatcherExtension {
 	}
 	public set isEnabled(value: boolean) {
 		this._context.globalState.update("isEnabled", value);
-		this.showOutputMessage();
+		this.showEnabledState();
 	}
 
 	public get shell(): string {

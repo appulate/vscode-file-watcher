@@ -9,13 +9,13 @@
 	},
 	"publisher": "appulate",
 	"license": "MIT",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/appulate/vscode-file-watcher.git"
 	},
 	"engines": {
-		"vscode": "^1.39.0"
+		"vscode": "^1.40.0"
 	},
 	"categories": [
 		"Other"
@@ -174,11 +174,11 @@
 		"watch": "tsc -watch"
 	},
 	"devDependencies": {
-		"@types/node": "^12.12.6",
-		"@types/vscode": "^1.39.0",
+		"@types/node": "^12.12.14",
+		"@types/vscode": "^1.40.0",
+		"true-case-path": "^2.2.1",
 		"tslint": "^5.20.1",
 		"tslint-eslint-rules": "^5.4.0",
-		"typescript": "^3.7.2",
-		"true-case-path": "^2.2.1"
+		"typescript": "^3.7.2"
 	}
 }
