@@ -96,6 +96,11 @@
 								"description": "Regex for matching files *not* to run commands on.",
 								"default": ".*"
 							},
+							"channelName": {
+								"type": "string",
+								"description": "channel name for this task ",
+								"default": ""
+							},
 							"cmd": {
 								"type": "string",
 								"description": "Command to execute on save.",

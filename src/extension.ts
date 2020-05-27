@@ -34,10 +34,12 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 type EventType = "onFileChange" | "onFolderChange";
+const baseChannelName = "File Watcher";
 
 interface ICommand {
 	match?: string;
 	notMatch?: string;
+	channelName?: string;
 	cmd: string;
 	isAsync: boolean;
 	event: EventType;
@@ -59,12 +61,25 @@ class FileWatcherExtension {
 	private _context: vscode.ExtensionContext;
 	private _config!: IConfig;
 	private _statusBar: StatusBar;
+	private _channelMap: Map<string, vscode.OutputChannel>;
 
 	constructor(context: vscode.ExtensionContext) {
 		this._context = context;
-		this._outputChannel = vscode.window.createOutputChannel("File Watcher");
+		// this._outputChannel = vscode.window.createOutputChannel(baseChannelName);
+		this._channelMap = new Map<string, vscode.OutputChannel>();
+		this._outputChannel = this.GetOrCreateChannel(baseChannelName);
 		this.loadConfig();
 		this._statusBar = new StatusBar();
+	}
+
+	public GetOrCreateChannel(channelName: string): vscode.OutputChannel {
+		let channel: vscode.OutputChannel | undefined = this._channelMap.get(channelName);
+		if (channel == undefined) {
+			channel = vscode.window.createOutputChannel(channelName);
+			this._channelMap.set(channelName, channel);
+		}
+
+		return channel;
 	}
 
 	public loadConfig(): void {
@@ -82,8 +97,15 @@ class FileWatcherExtension {
 	/**
 	 * Show message in output channel
 	 */
-	public showOutputMessage(message: string): void {
-		this._outputChannel.appendLine(message);
+	public showOutputMessage(message: string, channelList: Array<vscode.OutputChannel> | null = null): void {
+		if (channelList == null) {
+			this._outputChannel.appendLine(message);
+			return;
+		}
+		for (let i = 0; i < channelList?.length; i++) {
+			channelList[i].appendLine(message);
+		}
+
 	}
 
 	/**
@@ -136,7 +158,7 @@ class FileWatcherExtension {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(documentUri.fsPath);
-			const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+			const workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
 			const rootPath: string = workspaceFolders?.[0]?.uri.fsPath ?? "";
 			const currentWorkspace: string = vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
 
@@ -152,7 +174,8 @@ class FileWatcherExtension {
 				cmd: cmdStr,
 				isAsync: !!cfg.isAsync,
 				event,
-				match: cfg.match
+				match: cfg.match,
+				channelName: cfg.channelName
 			});
 		}
 
@@ -162,20 +185,32 @@ class FileWatcherExtension {
 	private _runCommands(commands: ICommand[]): void {
 		if (commands.length) {
 			const cfg: ICommand = commands.shift()!;
+			
+
+			let channelList: Array<vscode.OutputChannel> = [this._outputChannel];
+			if (cfg.channelName && cfg.channelName.trim().length>0) {
+				let newChannel = this.GetOrCreateChannel(baseChannelName + "-" + cfg.channelName.trim());
+				channelList.push(newChannel);
+			}
 
 			this.showStatusMessage(cfg.event);
 
-			this.showOutputMessage(`[${cfg.event}] for pattern "${cfg.match}" started`);
-			this.showOutputMessage(`[cmd] ${cfg.cmd}`);
+			this.showOutputMessage(`[${cfg.event}] for pattern "${cfg.match}" started`, channelList);
+			this.showOutputMessage(`[cmd] ${cfg.cmd}`, channelList);
 
 			const child: ChildProcess = exec(cfg.cmd, this._execOption);
-			child.stdout?.on("data", data => this._outputChannel.append(data));
+			child.stdout?.on("data", data => {
+				for(let i=0;i<channelList.length;i++){
+					channelList[i].append(data);
+				}
+			});
 			child.stderr?.on("data", data => {
-				this.showOutputMessage(`[error] ${data}`);
+				this.showOutputMessage(`[error] ${data}`, channelList);
 				this._statusBar.showError();
 			});
 			child.on("exit", () => {
-				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`);
+
+				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`, channelList);
 				if (!cfg.isAsync) {
 					this._runCommands(commands);
 				}
