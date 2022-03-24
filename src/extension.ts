@@ -136,7 +136,7 @@ class FileWatcherExtension {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(documentUri.fsPath);
-			const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+			const workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
 			const rootPath: string = workspaceFolders?.[0]?.uri.fsPath ?? "";
 			const currentWorkspace: string = vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
 
