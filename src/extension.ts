@@ -41,6 +41,7 @@ interface ICommand {
 	cmd: string;
 	isAsync: boolean;
 	event: EventType;
+    matches: RegExpExecArray | null;
 }
 
 interface IConfig extends vscode.WorkspaceConfiguration {
@@ -119,8 +120,13 @@ class FileWatcherExtension {
 				const isMatch: boolean = matchPattern.length === 0 || isfileNameValid(matchPattern);
 				const isNegate: boolean = negatePattern.length > 0 && isfileNameValid(negatePattern);
 				const isValidEvent: boolean = eventName === event;
+                
+                if (!isNegate && isMatch && isValidEvent) {
+                    cfg.matches = new RegExp(matchPattern).exec(documentUri.fsPath);
+                    return true;
+                }
 
-				return !isNegate && isMatch && isValidEvent;
+				return false;
 			});
 
 		if (commandConfigs.length === 0) {
@@ -136,7 +142,7 @@ class FileWatcherExtension {
 			let cmdStr: string = cfg.cmd;
 
 			const extName: string = path.extname(documentUri.fsPath);
-			const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+			const workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
 			const rootPath: string = workspaceFolders?.[0]?.uri.fsPath ?? "";
 			const currentWorkspace: string = vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
 
@@ -148,11 +154,18 @@ class FileWatcherExtension {
 			cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
 			cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(documentUri.fsPath, extName)}`);
 
+            if (cfg.matches) {
+                for (let i = 0; i < cfg.matches.length; i++) {
+                    cmdStr = cmdStr.replace(`\$${i}`, `${cfg.matches[i]}`);
+                }
+            }
+
 			commands.push({
 				cmd: cmdStr,
 				isAsync: !!cfg.isAsync,
 				event,
-				match: cfg.match
+				match: cfg.match,
+                matches: null
 			});
 		}
 
