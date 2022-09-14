@@ -1,7 +1,6 @@
 {
 	"extends": [
-		"tslint:latest",
-		"tslint-eslint-rules"
+		"tslint:latest"
 	],
 	"rules": {
 		"arrow-parens": [
