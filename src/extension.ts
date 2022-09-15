@@ -18,56 +18,74 @@ function initFileEvents(extension: FileWatcher): void {
     extension.showOutputMessage("[Config reloaded]");
   });
 
-  vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-    extension.eventHandler({
-      event: "onFileChange",
-      documentUri: document.uri,
-    });
-  });
-
-  vscode.workspace.onDidCreateFiles((createEvent: vscode.FileCreateEvent) => {
-    createEvent.files.forEach((documentUri) => {
-      extension.eventHandler({
-        event: "onFileCreate",
-        documentUri,
+  vscode.workspace.onDidSaveTextDocument(
+    async (document: vscode.TextDocument) => {
+      await extension.eventHandlerAsync({
+        event: "onFileChange",
+        documentUri: document.uri,
       });
-    });
-  });
+    }
+  );
 
-  vscode.workspace.onDidDeleteFiles((deleteEvent: vscode.FileDeleteEvent) => {
-    deleteEvent.files.forEach((documentUri) => {
-      extension.eventHandler({
-        event: "onFileDelete",
-        documentUri,
-      });
-    });
-  });
+  vscode.workspace.onDidCreateFiles(
+    async (createEvent: vscode.FileCreateEvent) => {
+      for (const documentUri of createEvent.files) {
+        await extension.eventHandlerAsync({
+          event: "onFileCreate",
+          documentUri,
+        });
+      }
+    }
+  );
 
-  vscode.workspace.onDidRenameFiles((renameEvent: vscode.FileRenameEvent) => {
-    renameEvent.files.forEach((document) => {
-      extension.eventHandler({
-        event: "onFileRename",
-        documentUri: document.newUri,
-        documentOldUri: document.oldUri,
-      });
-    });
-  });
+  vscode.workspace.onDidDeleteFiles(
+    async (deleteEvent: vscode.FileCreateEvent) => {
+      extension.showOutputMessage(deleteEvent.files.toString());
+      for (const documentUri of deleteEvent.files) {
+        await extension.eventHandlerAsync({
+          event: "onFileDelete",
+          documentUri,
+        });
+      }
+    }
+  );
+
+  vscode.workspace.onDidRenameFiles(
+    async (renameEvent: vscode.FileRenameEvent) => {
+      for (const document of renameEvent.files) {
+        await extension.eventHandlerAsync({
+          event: "onFileDelete",
+          documentUri: document.newUri,
+          documentOldUri: document.oldUri,
+        });
+      }
+    }
+  );
 }
 
 function initFolderEvents(extension: FileWatcher): void {
   const watcher: vscode.FileSystemWatcher =
     vscode.workspace.createFileSystemWatcher("**/*", false, false, false);
 
-  watcher.onDidChange((uri: vscode.Uri) => {
-    extension.eventHandler({ event: "onFolderChange", documentUri: uri });
+  watcher.onDidChange(async (uri: vscode.Uri) => {
+    await extension.eventHandlerAsync({
+      event: "onFolderChange",
+      documentUri: uri,
+    });
   });
 
-  watcher.onDidCreate((uri: vscode.Uri) => {
-    extension.eventHandler({ event: "onFolderCreate", documentUri: uri });
+  watcher.onDidCreate(async (uri: vscode.Uri) => {
+    await extension.eventHandlerAsync({
+      event: "onFolderCreate",
+      documentUri: uri,
+    });
   });
 
-  watcher.onDidDelete((uri: vscode.Uri) => {
-    extension.eventHandler({ event: "onFolderDelete", documentUri: uri });
+  watcher.onDidDelete(async (uri: vscode.Uri) => {
+    await extension.eventHandlerAsync({
+      event: "onFolderDelete",
+      documentUri: uri,
+    });
   });
 }
 

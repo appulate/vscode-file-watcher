@@ -29,6 +29,7 @@ export default class StatusBar {
   public setStatusBarColor(color: vscode.ThemeColor): void {
     this.statusBarItem.color = color;
   }
+
   private normalizeStatusBar(): Promise<void> {
     return new Promise((res) => {
       setTimeout(() => {

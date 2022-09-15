@@ -61,10 +61,8 @@ export function getReplacedCmd(
 ): string {
   const { documentUri, documentOldUri } = documentUriMap;
   return getCmdReplaceInfo(documentUri, documentOldUri).reduce(
-    (cmdResult, { pattern, replaceStr }) => {
-      cmdResult = cmdResult.replace(new RegExp(pattern, "g"), replaceStr);
-      return cmdResult;
-    },
+    (cmdResult, { pattern, replaceStr }) =>
+      cmdResult.replace(new RegExp(pattern, "g"), replaceStr),
     cmd
   );
 }

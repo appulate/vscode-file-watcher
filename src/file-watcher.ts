@@ -1,4 +1,4 @@
-import { ChildProcess, exec } from "child_process";
+import { exec } from "child_process";
 import * as vscode from "vscode";
 import StatusBar from "./status-bar";
 import {
@@ -12,7 +12,6 @@ import { getReplacedCmd } from "./utils";
 
 class FileWatcher {
   private outputChannel: vscode.OutputChannel;
-
   private config!: IConfig;
   private statusBar: StatusBar;
   private isRunProcess: boolean;
@@ -32,7 +31,7 @@ class FileWatcher {
       const commands: IPartialCommand[] | undefined = vscode.workspace
         .getConfiguration(name)
         .get<ICommand[]>("commands");
-      return commands && commands.length > 0;
+      return commands != null && commands.length > 0;
     });
     this.config = vscode.workspace.getConfiguration(configName[0]) as IConfig;
   }
@@ -46,6 +45,7 @@ class FileWatcher {
   public get isEnabled(): boolean {
     return !!this.context.globalState.get("isEnabled");
   }
+
   public set isEnabled(value: boolean) {
     this.context.globalState.update("isEnabled", value);
     this.showEnabledState();
@@ -97,11 +97,11 @@ class FileWatcher {
     }, []);
   }
 
-  public eventHandler({
+  public async eventHandlerAsync({
     event,
     documentUri,
     documentOldUri,
-  }: IEventHandler): void {
+  }: IEventHandler): Promise<void> {
     if (!this.isEnabled) {
       return;
     }
@@ -132,45 +132,53 @@ class FileWatcher {
       documentUri,
       documentOldUri,
     });
-    this.runCommands(commands);
+    await this.runCommandsAsync(commands);
   }
 
-  private runProcess(command: ICommand, commands: ICommand[]) {
-    const child: ChildProcess = exec(command.cmd, this.execOption);
+  private runExecCommand(cmd: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      exec(cmd, this.execOption, (error, stdout) => {
+        if (error != null) {
+          this.showOutputMessage(`[error] ${error}`);
+          this.statusBar.showError();
+          reject();
+          return;
+        }
+        this.showOutputMessage(stdout as string);
+        this.statusBar.showSuccess();
+        resolve();
+      });
+    });
+  }
+
+  private async runProcessAsync({
+    cmd,
+    match,
+    event,
+    isAsync,
+  }: ICommand): Promise<void> {
+    const onFinishProcessHandler = (): void => {
+      this.isRunProcess = false;
+      this.showOutputMessage(`[${event}]: for pattern "${match}" finished`);
+    };
+
     this.isRunProcess = true;
 
-    child.stdout?.on("data", (data) => {
-      this.showOutputMessage(data);
-      this.statusBar.showSuccess();
-    });
-    child.stderr?.on("data", (data) => {
-      this.showOutputMessage(`[error] ${data}`);
-      this.statusBar.showError();
-    });
-    child.on("exit", () => {
-      this.isRunProcess = false;
-      this.showOutputMessage(
-        `[${command.event}]: for pattern "${command.match}" finished`
-      );
-      if (!command.isAsync) {
-        this.runCommands(commands);
-      }
-    });
+    if (isAsync) {
+      this.runExecCommand(cmd).then(onFinishProcessHandler);
+    } else {
+      await this.runExecCommand(cmd);
+      onFinishProcessHandler();
+    }
   }
 
-  private runCommands(commands: ICommand[]): void {
-    if (commands.length > 0) {
-      const command: ICommand = commands.shift()!;
-
+  private async runCommandsAsync(commands: ICommand[]): Promise<void> {
+    for (const command of commands) {
       this.showOutputMessage(
         `[${command.event}] for pattern "${command.match}" started`
       );
       this.showOutputMessage(`[cmd] ${command.cmd}`);
-      this.runProcess(command, commands);
-
-      if (command.isAsync) {
-        this.runCommands(commands);
-      }
+      await this.runProcessAsync(command);
     }
   }
 }
