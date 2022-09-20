@@ -139,6 +139,7 @@ class FileWatcherExtension {
 			const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
 			const rootPath: string = workspaceFolders?.[0]?.uri.fsPath ?? "";
 			const currentWorkspace: string = vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
+			const filePathRelativeToWorkspace = documentUri.fsPath.replace(currentWorkspace, ''); 
 
 			cmdStr = cmdStr.replace(/\${file}/g, `${documentUri.fsPath}`);
 			cmdStr = cmdStr.replace(/\${workspaceRoot}/g, `${rootPath}`);
@@ -147,6 +148,7 @@ class FileWatcherExtension {
 			cmdStr = cmdStr.replace(/\${fileDirname}/g, `${path.dirname(documentUri.fsPath)}`);
 			cmdStr = cmdStr.replace(/\${fileExtname}/g, `${extName}`);
 			cmdStr = cmdStr.replace(/\${fileBasenameNoExt}/g, `${path.basename(documentUri.fsPath, extName)}`);
+			cmdStr = cmdStr.replace(/\${filePathRelativeToWorkspace}/g, `${filePathRelativeToWorkspace}`);   			
 
 			commands.push({
 				cmd: cmdStr,

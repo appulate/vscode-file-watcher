@@ -31,6 +31,7 @@ Commands support placeholders similar to tasks.json.
 * ${fileDirname}: directory name of saved file
 * ${fileExtname}: extension (including .) of saved file
 * ${fileBasenameNoExt}: saved file's basename without extension
+* ${filePathRelativeToWorkspace}: path of saved file relative to current workspace directory
 
 Samples
 =========
