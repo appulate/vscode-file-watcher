@@ -54,7 +54,7 @@ function initFileEvents(extension: FileWatcher): void {
     async (renameEvent: vscode.FileRenameEvent) => {
       for (const document of renameEvent.files) {
         await extension.eventHandlerAsync({
-          event: "onFileDelete",
+          event: "onFileRename",
           documentUri: document.newUri,
           documentOldUri: document.oldUri,
         });
