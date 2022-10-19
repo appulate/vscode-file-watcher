@@ -172,12 +172,14 @@ class FileWatcherExtension {
 			child.stdout?.on("data", data => this._outputChannel.append(data));
 			child.stderr?.on("data", data => {
 				this.showOutputMessage(`[error] ${data}`);
-				this._statusBar.showError();
 			});
 			child.on("exit", () => {
 				this.showOutputMessage(`[${cfg.event}]: for pattern "${cfg.match}" finished`);
 				if (!cfg.isAsync) {
 					this._runCommands(commands);
+				}
+				if (child.exitCode) {
+					this._statusBar.showError();
 				}
 			});
 
