@@ -20,20 +20,37 @@ export interface ICommand {
 export type IPartialCommand = Partial<ICommand>;
 
 export interface IConfig extends vscode.WorkspaceConfiguration {
-  shell?: string;
-  autoClearConsole?: boolean;
-  commands?: ICommand[];
+  shell: string;
+  autoClearConsole: boolean;
+  commands: ICommand[];
+  isClearStatusBar: boolean;
+  statusBarDelay: number;
+  isSyncRunEvents: boolean;
 }
 
-export interface IEventHandler {
-  event: EventType;
+export interface IDocumentUriMap {
   documentUri: vscode.Uri;
   documentOldUri?: vscode.Uri;
 }
 
-export type IDocumentUriMap = Omit<IEventHandler, "event">;
+export interface IEventConfig {
+  event: EventType;
+  documentsUri: readonly IDocumentUriMap[];
+}
 
 export interface ICmdReplaceInfo {
   pattern: RegExp;
   replaceStr: string;
+}
+
+export interface IColors {
+  errorColor: vscode.ThemeColor;
+  successColor: vscode.ThemeColor;
+  defaultColor: vscode.ThemeColor;
+  runColor: vscode.ThemeColor;
+}
+
+export enum StatusType {
+  Success = "success",
+  Error = "error",
 }

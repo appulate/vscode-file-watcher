@@ -1,60 +1,82 @@
 import * as vscode from "vscode";
+import { IColors } from "./types";
+import { getThemeColors } from "./utils";
 
-const STATUS_DELAY: number = 5000;
+const STATUS_DELAY_DEFAULT: number = 5000;
 
 export default class StatusBar {
   private statusBarItem: vscode.StatusBarItem;
-  private delay: number;
-  private errorColor: vscode.ThemeColor;
-  private successColor: vscode.ThemeColor;
-  private defaultColor: vscode.ThemeColor;
+  private colors: IColors = getThemeColors();
+  private delay!: number;
+  private isClear!: boolean;
 
-  constructor() {
+  constructor(private isRunProcess: () => boolean) {
     const priority: number = 1000;
     this.statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
       priority
     );
-    this.delay = STATUS_DELAY;
-    this.defaultColor = new vscode.ThemeColor("filewatcher.default");
-    this.errorColor = new vscode.ThemeColor("filewatcher.error");
-    this.successColor = new vscode.ThemeColor("filewatcher.success");
     this.initStatusBar();
+  }
+
+  public loadConfig({
+    isClearStatusBar,
+    statusBarDelay,
+  }: {
+    isClearStatusBar: boolean;
+    statusBarDelay?: number;
+  }): void {
+    this.isClear = isClearStatusBar;
+    this.delay = statusBarDelay || STATUS_DELAY_DEFAULT;
   }
 
   public showMessage(message: string): void {
     this.statusBarItem.text = message;
   }
 
-  public setStatusBarColor(color: vscode.ThemeColor): void {
+  private setStatusBarColor(color: vscode.ThemeColor): void {
     this.statusBarItem.color = color;
   }
 
-  private normalizeStatusBar(): Promise<void> {
-    return new Promise((res) => {
-      setTimeout(() => {
-        this.setStatusBarColor(this.defaultColor);
-        this.showMessage("File Watcher");
-        res();
-      }, this.delay);
-    });
+  public normalizeStatusBar(): void {
+    this.setStatusBarColor(this.colors.defaultColor);
+    this.showMessage("File Watcher");
+  }
+
+  private normalizeStatusWithDelay(): void {
+    setTimeout(() => {
+      if (!this.isRunProcess()) {
+        this.normalizeStatusBar();
+      }
+    }, this.delay);
+  }
+
+  public showRun(): void {
+    const runIcon: string = "$(pulse)";
+    this.setStatusBarColor(this.colors.runColor);
+    this.showMessage(`${runIcon} File Watcher Run...`);
   }
 
   public showSuccess(): void {
     const successIcon: string = "$(check)";
-    this.setStatusBarColor(this.successColor);
+    this.setStatusBarColor(this.colors.successColor);
     this.showMessage(`${successIcon} File Watcher Success`);
-    this.normalizeStatusBar();
+    if (this.isClear) {
+      this.normalizeStatusWithDelay();
+    }
   }
 
   public showError(): void {
     const stopIcon: string = "$(stop)";
-    this.setStatusBarColor(this.errorColor);
+    this.setStatusBarColor(this.colors.errorColor);
     this.showMessage(`${stopIcon} File Watcher Error`);
-    this.normalizeStatusBar();
+    if (this.isClear) {
+      this.normalizeStatusWithDelay();
+    }
   }
 
-  public initStatusBar(): void {
-    this.normalizeStatusBar().then(() => this.statusBarItem.show());
+  private initStatusBar(): void {
+    this.normalizeStatusBar();
+    this.statusBarItem.show();
   }
 }

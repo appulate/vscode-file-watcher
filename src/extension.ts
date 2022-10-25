@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import FileWatcher from "./file-watcher";
+import { convertSingleUriToDocArr, convertUriFiles } from "./utils";
 
 function registerCommands(extension: FileWatcher): void {
   vscode.commands.registerCommand("extension.enableFileWatcher", () => {
@@ -14,7 +15,8 @@ function registerCommands(extension: FileWatcher): void {
 function initFileEvents(extension: FileWatcher): void {
   vscode.workspace.onDidChangeConfiguration(() => {
     extension.loadConfig();
-    extension.showStatusMessage("config reloaded");
+    extension.statusBar.normalizeStatusBar();
+    extension.statusBar.showMessage("File Watcher: config reloaded");
     extension.showOutputMessage("[Config reloaded]");
   });
 
@@ -22,43 +24,38 @@ function initFileEvents(extension: FileWatcher): void {
     async (document: vscode.TextDocument) => {
       await extension.eventHandlerAsync({
         event: "onFileChange",
-        documentUri: document.uri,
+        documentsUri: convertSingleUriToDocArr(document.uri),
       });
     }
   );
 
   vscode.workspace.onDidCreateFiles(
     async (createEvent: vscode.FileCreateEvent) => {
-      for (const documentUri of createEvent.files) {
-        await extension.eventHandlerAsync({
-          event: "onFileCreate",
-          documentUri,
-        });
-      }
+      await extension.eventHandlerAsync({
+        event: "onFileCreate",
+        documentsUri: convertUriFiles(createEvent.files),
+      });
     }
   );
 
   vscode.workspace.onDidDeleteFiles(
     async (deleteEvent: vscode.FileCreateEvent) => {
-      extension.showOutputMessage(deleteEvent.files.toString());
-      for (const documentUri of deleteEvent.files) {
-        await extension.eventHandlerAsync({
-          event: "onFileDelete",
-          documentUri,
-        });
-      }
+      await extension.eventHandlerAsync({
+        event: "onFileDelete",
+        documentsUri: convertUriFiles(deleteEvent.files),
+      });
     }
   );
 
   vscode.workspace.onDidRenameFiles(
     async (renameEvent: vscode.FileRenameEvent) => {
-      for (const document of renameEvent.files) {
-        await extension.eventHandlerAsync({
-          event: "onFileRename",
-          documentUri: document.newUri,
-          documentOldUri: document.oldUri,
-        });
-      }
+      await extension.eventHandlerAsync({
+        event: "onFileRename",
+        documentsUri: renameEvent.files.map((file) => ({
+          documentUri: file.newUri,
+          documentOldUri: file.oldUri,
+        })),
+      });
     }
   );
 }
@@ -70,21 +67,21 @@ function initFolderEvents(extension: FileWatcher): void {
   watcher.onDidChange(async (uri: vscode.Uri) => {
     await extension.eventHandlerAsync({
       event: "onFolderChange",
-      documentUri: uri,
+      documentsUri: convertSingleUriToDocArr(uri),
     });
   });
 
   watcher.onDidCreate(async (uri: vscode.Uri) => {
     await extension.eventHandlerAsync({
       event: "onFolderCreate",
-      documentUri: uri,
+      documentsUri: convertSingleUriToDocArr(uri),
     });
   });
 
   watcher.onDidDelete(async (uri: vscode.Uri) => {
     await extension.eventHandlerAsync({
       event: "onFolderDelete",
-      documentUri: uri,
+      documentsUri: convertSingleUriToDocArr(uri),
     });
   });
 }

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { ICmdReplaceInfo, IDocumentUriMap } from "./types";
+import { ICmdReplaceInfo, IColors, IDocumentUriMap } from "./types";
 import { trueCasePathSync } from "true-case-path";
 
 function getCmdReplaceInfo(
@@ -65,4 +65,23 @@ export function getReplacedCmd(
       cmdResult.replace(new RegExp(pattern, "g"), replaceStr),
     cmd
   );
+}
+
+export function getThemeColors(): IColors {
+  return {
+    defaultColor: new vscode.ThemeColor("filewatcher.default"),
+    errorColor: new vscode.ThemeColor("filewatcher.error"),
+    successColor: new vscode.ThemeColor("filewatcher.success"),
+    runColor: new vscode.ThemeColor("filewatcher.run"),
+  };
+}
+
+export function convertSingleUriToDocArr(uri: vscode.Uri): IDocumentUriMap[] {
+  return [{ documentUri: uri }];
+}
+
+export function convertUriFiles(
+  filesUri: readonly vscode.Uri[]
+): IDocumentUriMap[] {
+  return filesUri.map((uri) => ({ documentUri: uri }));
 }
