@@ -28,9 +28,9 @@ class FileWatcher {
       "filewatcher",
       "appulateinc.filewatcher",
     ].filter((name) => {
-      const commands: IPartialCommand[] | undefined = vscode.workspace
-        .getConfiguration(name)
-        .get<ICommand[]>("commands");
+      const commands: IPartialCommand[] | null =
+        vscode.workspace.getConfiguration(name).get<ICommand[]>("commands") ??
+        null;
       return commands != null && commands.length > 0;
     });
 
@@ -39,7 +39,7 @@ class FileWatcher {
     ) as Partial<IConfig>;
 
     this.statusBar.loadConfig({
-      isClearStatusBar: !!this.config.isClearStatusBar,
+      isClearStatusBar: Boolean(this.config.isClearStatusBar),
       statusBarDelay: this.config.statusBarDelay,
     });
   }
@@ -51,7 +51,7 @@ class FileWatcher {
   }
 
   public get isEnabled(): boolean {
-    return !!this.context.globalState.get("isEnabled");
+    return Boolean(this.context.globalState.get("isEnabled"));
   }
 
   public set isEnabled(value: boolean) {
@@ -92,7 +92,7 @@ class FileWatcher {
       if (cmd != null && event != null && match != null) {
         commands.push({
           cmd: getReplacedCmd(documentUriMap, cmd),
-          isAsync: !!isAsync,
+          isAsync: Boolean(isAsync),
           event,
           match,
         });
@@ -209,7 +209,7 @@ class FileWatcher {
       return;
     }
 
-    if (!!this.config.isSyncRunEvents) {
+    if (Boolean(this.config.isSyncRunEvents)) {
       await this.eventRunPromise;
     }
 
