@@ -28,10 +28,10 @@ class FileWatcher {
       "filewatcher",
       "appulateinc.filewatcher",
     ].filter((name) => {
-      const commands: IPartialCommand[] | null =
-        vscode.workspace.getConfiguration(name).get<ICommand[]>("commands") ??
-        null;
-      return commands != null && commands.length > 0;
+      const commands: IPartialCommand[] | undefined = vscode.workspace
+        .getConfiguration(name)
+        .get<ICommand[]>("commands");
+      return commands !== undefined && commands.length > 0;
     });
 
     this.config = vscode.workspace.getConfiguration(
@@ -60,8 +60,8 @@ class FileWatcher {
   }
 
   private get execOption(): { shell: string } | null {
-    const shell: string | null = this.config.shell ?? null;
-    return shell != null ? { shell } : null;
+    const shell: string | undefined = this.config.shell;
+    return shell != undefined ? { shell } : null;
   }
 
   public get isAutoClearConsole(): boolean {
@@ -76,11 +76,8 @@ class FileWatcher {
     this.outputChannel.appendLine(message);
   }
 
-  private isFileNameValid(
-    documentUri: vscode.Uri,
-    pattern: string | null
-  ): boolean {
-    return pattern != null && new RegExp(pattern).test(documentUri.fsPath);
+  private isFileNameValid(documentUri: vscode.Uri, pattern?: string): boolean {
+    return pattern != undefined && new RegExp(pattern).test(documentUri.fsPath);
   }
 
   private getCommandsByConfigs(
@@ -89,7 +86,7 @@ class FileWatcher {
   ): ICommand[] {
     return commandConfigs.reduce((commands: ICommand[], config) => {
       const { cmd, event, match, isAsync } = config;
-      if (cmd != null && event != null && match != null) {
+      if (cmd != undefined && event != undefined && match != undefined) {
         commands.push({
           cmd: getReplacedCmd(documentUriMap, cmd),
           isAsync: Boolean(isAsync),
@@ -173,8 +170,8 @@ class FileWatcher {
         const commandConfigs: IPartialCommand[] = this.commands.filter(
           (cfg) =>
             event === cfg.event &&
-            !this.isFileNameValid(documentUri, cfg.notMatch ?? null) &&
-            this.isFileNameValid(documentUri, cfg.match ?? null)
+            !this.isFileNameValid(documentUri, cfg.notMatch) &&
+            this.isFileNameValid(documentUri, cfg.match)
         );
 
         if (commandConfigs.length === 0) {

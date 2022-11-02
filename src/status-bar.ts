@@ -3,6 +3,7 @@ import { IColors } from "./types";
 import { getThemeColors } from "./utils";
 
 const STATUS_DELAY_DEFAULT: number = 5000;
+const PRIORITY_SHOW: number = 1000;
 
 export default class StatusBar {
   private statusBarItem: vscode.StatusBarItem;
@@ -11,10 +12,9 @@ export default class StatusBar {
   private isClear!: boolean;
 
   constructor(private isRunProcess: () => boolean) {
-    const priority: number = 1000;
     this.statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      priority
+      PRIORITY_SHOW
     );
     this.initStatusBar();
   }

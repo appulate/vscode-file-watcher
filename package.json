@@ -15,13 +15,14 @@
 		"url": "https://github.com/appulate/vscode-file-watcher.git"
 	},
 	"engines": {
-		"vscode": "^1.40.0"
+		"vscode": "^1.71.0"
 	},
 	"categories": [
 		"Other"
 	],
 	"keywords": [
 		"run script",
+		"file watch",
 		"folder watch",
 		"case insensitive",
 		"on change",
