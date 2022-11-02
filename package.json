@@ -1,5 +1,5 @@
 {
-	"name": "file-watcher",
+	"name": "filewatcher",
 	"displayName": "File Watcher",
 	"description": "Watch file or folder changes (deletions, creations, renaming), and run matched command scripts.",
 	"icon": "media/lightning.png",
