@@ -1,16 +1,14 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { ICmdReplaceInfo, IColors, IDocumentUriMap } from "./types";
-import { trueCasePathSync } from "true-case-path";
 
 function getCmdReplaceInfo(
   documentUri: vscode.Uri,
   documentOldUri?: vscode.Uri
 ): ICmdReplaceInfo[] {
   const { fsPath } = documentUri;
-  const workspaceRootPath: string = trueCasePathSync(
-    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? ""
-  );
+  const workspaceRootPath: string =
+    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
   const extName: string = path.extname(fsPath);
 
   return [
@@ -32,9 +30,8 @@ function getCmdReplaceInfo(
     },
     {
       pattern: /\${currentWorkspace}/,
-      replaceStr: trueCasePathSync(
-        vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? ""
-      ),
+      replaceStr:
+        vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "",
     },
     {
       pattern: /\${fileBasename}/,
