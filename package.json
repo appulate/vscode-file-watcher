@@ -1,7 +1,7 @@
 {
 	"name": "filewatcher",
 	"displayName": "File Watcher",
-	"description": "Watch file or folder changes, and run matched command scripts.",
+	"description": "Watch file or folder changes (deletions, creations, renaming), and run matched command scripts.",
 	"icon": "media/lightning.png",
 	"galleryBanner": {
 		"color": "#E4F2FF",
@@ -9,23 +9,27 @@
 	},
 	"publisher": "appulate",
 	"license": "MIT",
-	"version": "1.0.3",
+	"version": "1.1.5",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/appulate/vscode-file-watcher.git"
 	},
 	"engines": {
-		"vscode": "^1.40.0"
+		"vscode": "^1.71.0"
 	},
 	"categories": [
 		"Other"
 	],
 	"keywords": [
 		"run script",
+		"file watch",
 		"folder watch",
 		"case insensitive",
 		"on change",
-		"on save"
+		"on save",
+		"on delete",
+		"on create",
+		"on rename"
 	],
 	"activationEvents": [
 		"*"
@@ -34,12 +38,39 @@
 	"contributes": {
 		"colors": [
 			{
+				"id": "filewatcher.default",
+				"description": "Default color in the status bar.",
+				"defaults": {
+					"dark": "#FFFFFF",
+					"light": "#FFFFFF",
+					"highContrast": "#FFFFFF"
+				}
+			},
+			{
 				"id": "filewatcher.error",
 				"description": "Color for error message in the status bar.",
 				"defaults": {
 					"dark": "#F5ED39",
 					"light": "#F5ED39",
 					"highContrast": "#F5ED39"
+				}
+			},
+			{
+				"id": "filewatcher.success",
+				"description": "Color for success message in the status bar.",
+				"defaults": {
+					"dark": "#25E028",
+					"light": "#25E028",
+					"highContrast": "#25E028"
+				}
+			},
+			{
+				"id": "filewatcher.run",
+				"description": "Color for success message in the status bar.",
+				"defaults": {
+					"dark": "#00FFFB",
+					"light": "#00FFFB",
+					"highContrast": "#00FFFB"
 				}
 			}
 		],
@@ -77,8 +108,20 @@
 					"description": "Automatically clear the console on each save before running commands."
 				},
 				"filewatcher.shell": {
-					"type": "number",
+					"type": "string",
 					"description": "Shell to execute the command with (gets passed to child_process.exec as an options arg. e.g. child_process(cmd, { shell })."
+				},
+				"filewatcher.isClearStatusBar": {
+					"type": "boolean",
+					"description": "Returns the status bar to its normal position (after receiving a 'Success' or 'Error' status) after a some time."
+				},
+				"filewatcher.statusBarDelay": {
+					"type": "number",
+					"description": "The time after which the status returns to normal. Only works if isClearStatusBar === true. Default is 5000ms"
+				},
+				"filewatcher.isSyncRunEvents": {
+					"type": "boolean",
+					"description": "Launches event handlers of the same name with the appropriate pattern 'match' or 'notMatch' (e.g. onFileChange and onFolderChange) in synchronous or asynchronous mode."
 				},
 				"filewatcher.commands": {
 					"description": "array of commands",
@@ -110,7 +153,12 @@
 								"description": "events onFileChange, onFolderChange",
 								"enum": [
 									"onFileChange",
-									"onFolderChange"
+									"onFolderChange",
+									"onFileDelete",
+									"onFileRename",
+									"onFileCreate",
+									"onFolderCreate",
+									"onFolderDelete"
 								]
 							}
 						}
@@ -129,6 +177,18 @@
 						"shell": {
 							"type": "string",
 							"description": "Shell to execute the command with (gets passed to child_process.exec as an options arg. e.g. child_process(cmd, { shell })."
+						},
+						"isClearStatusBar": {
+							"type": "boolean",
+							"description": "Returns the status bar to its normal position (after receiving a 'Success' or 'Error' status) after a some time."
+						},
+						"statusBarDelay": {
+							"type": "number",
+							"description": "The time after which the status returns to normal. Only works if isClearStatusBar === true. Default is 5000ms"
+						},
+						"isSyncRunEvents": {
+							"type": "boolean",
+							"description": "Launches event handlers of the same name with the appropriate pattern 'match' or 'notMatch' (e.g. onFileChange and onFolderChange) in synchronous or asynchronous mode."
 						},
 						"commands": {
 							"type": "array",
@@ -158,7 +218,16 @@
 									"event": {
 										"type": "string",
 										"description": "events onFileChange, onFolderChange",
-										"default": "onFileChange"
+										"default": "onFileChange",
+										"enum": [
+											"onFileChange",
+											"onFolderChange",
+											"onFileDelete",
+											"onFileRename",
+											"onFileCreate",
+											"onFolderCreate",
+											"onFolderDelete"
+										]
 									}
 								}
 							}
@@ -171,14 +240,15 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
-		"watch": "tsc -watch"
+		"watch": "tsc -watch",
+		"prepare": "npm install -g vsce",
+		"generate": "vsce package",
+		"publish": "vsce publish"
 	},
 	"devDependencies": {
-		"@types/node": "^12.12.14",
-		"@types/vscode": "^1.40.0",
-		"true-case-path": "^2.2.1",
-		"tslint": "^5.20.1",
-		"tslint-eslint-rules": "^5.4.0",
-		"typescript": "^3.7.2"
+		"@types/node": "^18.7.16",
+		"@types/vscode": "^1.71.0",
+		"tslint": "^6.1.3",
+		"typescript": "^4.8.3"
 	}
 }

@@ -1,11 +1,16 @@
 # File & Folder Watcher
 
-This extension allows configuring commands that get run whenever a file is saved or folder is changed in vscode.
+This extension allows configuring commands that get run whenever a file is saved (changed, deleted, renamed, created) or folder is changed (deleted, created) in vscode.
 
 ## Features
-* Following two events: onSaveDocument and onFolderChange:
+* Following events: onSaveDocument, onFileDelete, onFileRename, onFileCreate, onFolderChange, onFolderDelete and onFolderCreate:
     * **onFileChange** - allows to track changes to the contents of an existing file
-    * **onFolderChange** - allows to track the deletion, addition and modification of files
+	* **onFileDelete** - allows to track the deletion of file(s)
+	* **onFileRename** - allows to track the renaming of file(s)
+	* **onFileCreate** - allows to track the creation of file(s)
+    * **onFolderChange** - allows to track the modification of files
+	* **onFolderDelete** - allows to track the deletion of files
+	* **onFolderCreate** - allows to track the addition of files
 * **case insensitive** workspace root folder
 * Configure multiple commands that run when the event happened
 * Regex pattern matching for files that trigger commands running
@@ -15,6 +20,9 @@ This extension allows configuring commands that get run whenever a file is saved
 Add "filewatcher" configuration to user or workspace settings.
 * "shell" - (optional) shell path to be used with child_process.exec options that runs commands.
 * "autoClearConsole" - (optional) clear VSCode output console every time commands run. Defaults to false.
+* "isClearStatusBar" - (optional) returns the status bar to its normal position (after receiving a 'Success' or 'Error' status) after a some time. commands.
+* "statusBarDelay" - (optional) the time after which the status returns to normal. Only works if isClearStatusBar === true. Default is 5000ms
+* "isSyncRunEvents" - (optional) launches event handlers of the same name with the appropriate pattern 'match' or 'notMatch' (e.g. onFileChange and onFolderChange) in synchronous or asynchronous mode.
 * "commands" - array of commands that will be run whenever a file is saved.
   * "match" - a regex for matching which files to run commands on.
   * "notMatch" - a regex for matching files *not* to run commands on.
@@ -26,11 +34,13 @@ Add "filewatcher" configuration to user or workspace settings.
 Commands support placeholders similar to tasks.json.
 
 * ${workspaceRoot}: **case insensitive** workspace root folder
-* ${file}: path of saved file
+* ${workspaceRelativeDir}: **case insensitive** is the file relative path to the workspaceRoot
+* ${file}: path of tracking file
+* ${fileOld}: path of tracking file when renaming
 * ${fileBasename}: saved file's basename
-* ${fileDirname}: directory name of saved file
-* ${fileExtname}: extension (including .) of saved file
-* ${fileBasenameNoExt}: saved file's basename without extension
+* ${fileDirname}: directory name of tracking file
+* ${fileExtname}: extension (including .) of tracking file
+* ${fileBasenameNoExt}: tracking file's basename without extension
 
 Samples
 =========
