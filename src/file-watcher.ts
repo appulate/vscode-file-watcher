@@ -51,7 +51,7 @@ class FileWatcher {
   }
 
   public get isEnabled(): boolean {
-    return Boolean(this.context.globalState.get("isEnabled"));
+    return Boolean(this.context.globalState.get("isEnabled", true));
   }
 
   public set isEnabled(value: boolean) {

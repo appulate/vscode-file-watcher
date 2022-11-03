@@ -88,7 +88,7 @@ function initFolderEvents(extension: FileWatcher): void {
 
 export function activate(context: vscode.ExtensionContext): void {
   const extension: FileWatcher = new FileWatcher(context);
-  extension.showEnabledState();
+  extension.isEnabled = true;
   registerCommands(extension);
   initFileEvents(extension);
   initFolderEvents(extension);
