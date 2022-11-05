@@ -9,7 +9,7 @@
 	},
 	"publisher": "appulate",
 	"license": "MIT",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/appulate/vscode-file-watcher.git"
@@ -38,15 +38,6 @@
 	"contributes": {
 		"colors": [
 			{
-				"id": "filewatcher.default",
-				"description": "Default color in the status bar.",
-				"defaults": {
-					"dark": "#FFFFFF",
-					"light": "#FFFFFF",
-					"highContrast": "#FFFFFF"
-				}
-			},
-			{
 				"id": "filewatcher.error",
 				"description": "Color for error message in the status bar.",
 				"defaults": {
@@ -66,7 +57,7 @@
 			},
 			{
 				"id": "filewatcher.run",
-				"description": "Color for success message in the status bar.",
+				"description": "Color for run message in the status bar.",
 				"defaults": {
 					"dark": "#00FFFB",
 					"light": "#00FFFB",

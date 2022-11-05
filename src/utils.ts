@@ -64,9 +64,11 @@ export function getReplacedCmd(
   );
 }
 
-export function getThemeColors(): IColors {
+export function getThemeColors(
+  defaultThemeColor?: string | vscode.ThemeColor
+): IColors {
   return {
-    defaultColor: new vscode.ThemeColor("filewatcher.default"),
+    defaultColor: defaultThemeColor,
     errorColor: new vscode.ThemeColor("filewatcher.error"),
     successColor: new vscode.ThemeColor("filewatcher.success"),
     runColor: new vscode.ThemeColor("filewatcher.run"),

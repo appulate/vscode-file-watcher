@@ -6,16 +6,16 @@ const STATUS_DELAY_DEFAULT: number = 5000;
 const PRIORITY_SHOW: number = 1000;
 
 export default class StatusBar {
-  private statusBarItem: vscode.StatusBarItem;
-  private colors: IColors = getThemeColors();
+  private statusBarItem: vscode.StatusBarItem =
+    vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      PRIORITY_SHOW
+    );
+  private colors: IColors = getThemeColors(this.statusBarItem.color);
   private delay!: number;
   private isClear!: boolean;
 
   constructor(private isRunProcess: () => boolean) {
-    this.statusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      PRIORITY_SHOW
-    );
     this.initStatusBar();
   }
 
@@ -34,7 +34,7 @@ export default class StatusBar {
     this.statusBarItem.text = message;
   }
 
-  private setStatusBarColor(color: vscode.ThemeColor): void {
+  private setStatusBarColor(color?: vscode.ThemeColor): void {
     this.statusBarItem.color = color;
   }
 

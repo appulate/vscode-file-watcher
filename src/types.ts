@@ -46,7 +46,7 @@ export interface ICmdReplaceInfo {
 export interface IColors {
   errorColor: vscode.ThemeColor;
   successColor: vscode.ThemeColor;
-  defaultColor: vscode.ThemeColor;
+  defaultColor?: vscode.ThemeColor;
   runColor: vscode.ThemeColor;
 }
 

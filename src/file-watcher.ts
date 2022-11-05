@@ -61,7 +61,7 @@ class FileWatcher {
 
   private get execOption(): { shell: string } | null {
     const shell: string | undefined = this.config.shell;
-    return shell != undefined ? { shell } : null;
+    return shell ? { shell } : null;
   }
 
   public get isAutoClearConsole(): boolean {
