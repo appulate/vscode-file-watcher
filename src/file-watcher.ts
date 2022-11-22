@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import StatusBar from "./status-bar";
 import {
   ICommand,
+  ICommandValue,
   IEventConfig,
   IPartialCommand,
   IDocumentUriMap,
@@ -34,9 +35,24 @@ class FileWatcher {
       return commands !== undefined && commands.length > 0;
     });
 
-    this.config = vscode.workspace.getConfiguration(
+    const workspaceConfig = vscode.workspace.getConfiguration(
       configName[0]
     ) as Partial<IConfig>;
+
+    this.config = {
+        ...workspaceConfig,
+        commands: workspaceConfig.commands?.map(command => {
+            return {
+                ...command,
+                ...(typeof command.cmd === "string" && {
+                    cmd: {
+                        type: "shell",
+                        value: command.cmd
+                    }
+                })
+            };
+        })
+    };
 
     this.statusBar.loadConfig({
       isClearStatusBar: Boolean(this.config.isClearStatusBar),
@@ -88,7 +104,10 @@ class FileWatcher {
       const { cmd, event, match, isAsync } = config;
       if (cmd != undefined && event != undefined && match != undefined) {
         commands.push({
-          cmd: getReplacedCmd(documentUriMap, cmd),
+          cmd: {
+            ...<ICommandValue>cmd,
+            value: getReplacedCmd(documentUriMap, (<ICommandValue> cmd).value)
+          },
           isAsync: Boolean(isAsync),
           event,
           match,
@@ -110,9 +129,11 @@ class FileWatcher {
     this.showOutputMessage(`[${event}]: for pattern "${match}" finished`);
   }
 
-  private async runProcessAsync(cmd: string): Promise<StatusType> {
-    return new Promise((resolve) => {
-      exec(cmd, this.execOption, (_, stdout, stderr) => {
+  private async runProcessAsync(cmd: ICommandValue): Promise<StatusType> {
+    return new Promise(async (resolve) => {
+
+      if (cmd.type == "shell") {
+        exec(cmd.value, this.execOption, (_, stdout, stderr) => {
         if (stderr != "") {
           this.showOutputMessage(`[error] ${stderr}`);
           resolve(StatusType.Error);
@@ -121,6 +142,16 @@ class FileWatcher {
         this.showOutputMessage(stdout as string);
         resolve(StatusType.Success);
       });
+      } else {
+        await vscode.commands.executeCommand(cmd.value).then(message => {
+            this.showOutputMessage(message as string);
+            resolve(StatusType.Success);
+        },
+        message => {
+            this.showOutputMessage(`[error] ${message}`);
+            resolve(StatusType.Error);
+        });
+      }
     });
   }
 
@@ -132,7 +163,7 @@ class FileWatcher {
     for (const command of commands) {
       this.onStartedProcessHandler(command);
       const proccessPromise: Promise<StatusType> = this.runProcessAsync(
-        command.cmd
+        <ICommandValue> command.cmd
       );
       proccessPromise.finally(() => this.onFinishProcessHandler(command));
 

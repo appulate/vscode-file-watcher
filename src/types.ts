@@ -9,10 +9,21 @@ export type EventType =
   | "onFolderCreate"
   | "onFolderDelete";
 
+
+export type CommandType =
+  | "shell"
+  | "vscode";
+
+
+export interface ICommandValue {
+    type: CommandType;
+    value: string;
+}
+
 export interface ICommand {
   match: string;
   notMatch?: string;
-  cmd: string;
+  cmd: string | ICommandValue;
   isAsync: boolean;
   event: EventType;
 }

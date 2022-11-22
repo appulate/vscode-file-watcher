@@ -131,9 +131,24 @@
 								"default": ".*"
 							},
 							"cmd": {
-								"type": "string",
+								"type": ["string", "object"],
 								"description": "Command to execute on save.",
-								"default": "echo ${file}"
+								"default": "echo ${file}",
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "description": "The type of command.",
+                                        "default": "shell",
+                                        "enum": [
+                                            "shell",
+                                            "vscode"
+                                        ]
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "description": "The command string."
+                                    }
+                                }
 							},
 							"isAsync": {
 								"type": "boolean",
@@ -197,9 +212,20 @@
 										"default": ".*"
 									},
 									"cmd": {
-										"type": "string",
+										"type": ["string", "object"],
 										"description": "Command to execute on save.",
-										"default": "echo ${file}"
+										"default": "echo ${file}",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "description": "The type of command.",
+                                                "default": "shell",
+                                                "enum": [
+                                                    "shell",
+                                                    "vscode"
+                                                ]
+                                            }
+                                        }
 									},
 									"isAsync": {
 										"type": "boolean",
