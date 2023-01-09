@@ -20,7 +20,7 @@ function initFileEvents(extension: FileWatcher): void {
     extension.showOutputMessage("[Config reloaded]");
   });
 
-  vscode.workspace.onDidSaveTextDocument(
+  vscode.workspace.onDidChangeTextDocument(
     async (document: vscode.TextDocument) => {
       await extension.eventHandlerAsync({
         event: "onFileChange",
