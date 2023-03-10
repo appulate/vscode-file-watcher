@@ -2,6 +2,14 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { ICmdReplaceInfo, IColors, IDocumentUriMap } from "./types";
 
+function fileBasenameNoExtAll(fsPath, extName) {
+  while (fsPath.includes('.') === true) {
+    extName = path.extname(fsPath);
+    fsPath = path.basename(fsPath, extName);    
+  }
+  return fsPath;
+}
+
 function getCmdReplaceInfo(
   documentUri: vscode.Uri,
   documentOldUri?: vscode.Uri
@@ -49,6 +57,10 @@ function getCmdReplaceInfo(
       pattern: /\${fileBasenameNoExt}/,
       replaceStr: path.basename(fsPath, extName),
     },
+    {
+      pattern: /\${fileBasenameNoExtAll}/,
+      replaceStr: fileBasenameNoExtAll(fsPath, extName),
+    }
   ];
 }
 
