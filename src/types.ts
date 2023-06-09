@@ -1,56 +1,135 @@
 import * as vscode from "vscode";
 
-export type EventType =
-  | "onFileChange"
-  | "onFileDelete"
-  | "onFileRename"
-  | "onFileCreate"
-  | "onFolderChange"
-  | "onFolderCreate"
-  | "onFolderDelete";
+export type Nullable<T> = T | null;
 
-export interface ICommand {
-  match: string;
-  notMatch?: string;
-  cmd: string;
-  isAsync: boolean;
-  event: EventType;
+export enum Event {
+  FileChange = "onFileChange",
+  FileChangeImmediate = "onFileChangeImmediate",
+  FileDelete = "onFileDelete",
+  FileRename = "onFileRename",
+  FileCreate = "onFileCreate",
+  FolderChange = "onFolderChange",
+  FolderCreate = "onFolderCreate",
+  FolderDelete = "onFolderDelete",
 }
 
-export type IPartialCommand = Partial<ICommand>;
-
-export interface IConfig extends vscode.WorkspaceConfiguration {
-  shell: string;
-  autoClearConsole: boolean;
-  commands: ICommand[];
-  isClearStatusBar: boolean;
-  statusBarDelay: number;
-  isSyncRunEvents: boolean;
+export enum CommandType {
+  Shell = "shell",
+  Vscode = "vscode",
 }
+
+export interface ICommandValue<T extends CommandType = CommandType> {
+  readonly type: T;
+  readonly value: T extends CommandType.Shell ? string : string | string[];
+}
+
+export interface IExecOptions {
+  readonly shell: string;
+}
+
+interface ICmdOptions {
+  readonly execOptions: Nullable<IExecOptions>;
+}
+
+interface IConfig<T> extends vscode.WorkspaceConfiguration {
+  readonly shell: string;
+  readonly autoClearConsole: boolean;
+  readonly commands: T[];
+  readonly isClearStatusBar: boolean;
+  readonly statusBarDelay: number;
+  readonly isSyncRunEvents: boolean;
+  readonly successTextColor: string;
+  readonly runTextColor: string;
+}
+
+interface ICommand<T> {
+  readonly event: Event;
+  readonly match: string;
+  readonly cmd: T;
+  readonly shell: string;
+  readonly vscodeTask: string | string[];
+  readonly isAsync: boolean;
+  readonly notMatch?: string;
+}
+
+export type PartialInitCommand = Partial<ICommand<string>>;
+
+export type ValidCommand = PartialInitCommand & {
+  readonly event: ICommand<string>["event"];
+  readonly match: ICommand<string>["match"];
+};
+
+export type PreparedCommand = Omit<
+  ICommand<ICommandValue>,
+  "shell" | "vscodeTask"
+> &
+  ICmdOptions;
+
+export type InitConfig<T> = Partial<IConfig<T>> & {
+  readonly commands: IConfig<T>["commands"];
+};
+
+export type PartialInitConfig = Partial<IConfig<PartialInitCommand>>;
+
+export type PreparedConfig = InitConfig<PreparedCommand>;
 
 export interface IDocumentUriMap {
-  documentUri: vscode.Uri;
-  documentOldUri?: vscode.Uri;
+  readonly documentUri: vscode.Uri;
+  readonly documentOldUri?: vscode.Uri;
 }
 
 export interface IEventConfig {
-  event: EventType;
-  documentsUri: readonly IDocumentUriMap[];
-}
-
-export interface ICmdReplaceInfo {
-  pattern: RegExp;
-  replaceStr: string;
+  readonly event: Event;
+  readonly documentsUri: readonly IDocumentUriMap[];
 }
 
 export interface IColors {
-  errorColor: vscode.ThemeColor;
-  successColor: vscode.ThemeColor;
-  defaultColor?: vscode.ThemeColor;
-  runColor: vscode.ThemeColor;
+  readonly default?: vscode.ThemeColor;
+  readonly error: vscode.ThemeColor;
+  success: vscode.ThemeColor;
+  run: vscode.ThemeColor;
+}
+
+export interface IPackageConfigSchema {
+  readonly title: string;
+  readonly type: string;
+  readonly properties: {
+    [key: string]: {
+      readonly type: string;
+      readonly default?: unknown;
+      readonly description?: string;
+    };
+  };
+}
+
+export interface IPackage {
+  readonly displayName: string;
+  readonly version: string;
+  readonly contributes: {
+    readonly configuration: IPackageConfigSchema;
+  };
 }
 
 export enum StatusType {
   Success = "success",
   Error = "error",
+}
+
+export enum EnabledState {
+  Enable = "enabled",
+  Disable = "disabled",
+}
+
+export enum OutputReservedKeys {
+  Error = "[error]",
+  Cmd = "[cmd]",
+  Task = "[vscode-task]",
+  Reload = "[Config reloaded]",
+  EventHandled = "[Event handled]",
+}
+
+export enum RegisterCommands {
+  Enable = "extension.enableFileWatcher",
+  Disable = "extension.disableFileWatcher",
+  FocusOutput = "extension.focusIntoOutput",
 }

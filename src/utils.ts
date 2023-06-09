@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { ICmdReplaceInfo, IColors, IDocumentUriMap } from "./types";
+import { CommandType, IColors, ICommandValue, IDocumentUriMap } from "./types";
+
+interface ICmdReplaceInfo {
+  readonly pattern: RegExp;
+  readonly replaceStr: string;
+}
 
 function getCmdReplaceInfo(
   documentUri: vscode.Uri,
@@ -9,6 +14,8 @@ function getCmdReplaceInfo(
   const { fsPath } = documentUri;
   const workspaceRootPath: string =
     vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
+  const currentWorkspacePath: string =
+    vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "";
   const extName: string = path.extname(fsPath);
 
   return [
@@ -30,8 +37,11 @@ function getCmdReplaceInfo(
     },
     {
       pattern: /\${currentWorkspace}/,
-      replaceStr:
-        vscode.workspace.getWorkspaceFolder(documentUri)?.uri.fsPath ?? "",
+      replaceStr: currentWorkspacePath,
+    },
+    {
+      pattern: /\${currentRelativeWorkspace}/,
+      replaceStr: path.relative(currentWorkspacePath, fsPath),
     },
     {
       pattern: /\${fileBasename}/,
@@ -65,13 +75,13 @@ export function getReplacedCmd(
 }
 
 export function getThemeColors(
-  defaultThemeColor?: string | vscode.ThemeColor
+  defaultColor?: string | vscode.ThemeColor
 ): IColors {
   return {
-    defaultColor: defaultThemeColor,
-    errorColor: new vscode.ThemeColor("filewatcher.error"),
-    successColor: new vscode.ThemeColor("filewatcher.success"),
-    runColor: new vscode.ThemeColor("filewatcher.run"),
+    default: defaultColor,
+    error: new vscode.ThemeColor("statusBarItem.errorBackground"),
+    success: new vscode.ThemeColor("filewatcher.success"),
+    run: new vscode.ThemeColor("filewatcher.run"),
   };
 }
 
@@ -83,4 +93,22 @@ export function convertUriFiles(
   filesUri: readonly vscode.Uri[]
 ): IDocumentUriMap[] {
   return filesUri.map((uri) => ({ documentUri: uri }));
+}
+
+export function getClickableLinksInMsg(msg: string): string {
+  const errorLinkRegex =
+    /(?:file:\/\/\/)?([a-zA-Z]:(?:\/|\\)[^:"<>|?*\n]+):(\d+):(\d+)/g;
+  return msg.replace(errorLinkRegex, (_, filePath, line, column) => {
+    const uri: vscode.Uri = vscode.Uri.file(path.resolve(filePath)).with({
+      fragment: `${line}:${column}`,
+    });
+    return `${filePath}:${line}:${column} (${String(uri)})`;
+  });
+}
+
+export function isCmdShell(
+  type: ICommandValue["type"],
+  value: ICommandValue["value"]
+): value is string {
+  return type === CommandType.Shell && typeof value === "string";
 }
