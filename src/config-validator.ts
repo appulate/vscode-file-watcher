@@ -2,11 +2,10 @@ import Ajv, { ValidateFunction } from "ajv";
 import ajvErrors from "ajv-errors";
 import { JTDDataType } from "ajv/dist/jtd";
 import {
-  InitConfig,
   IPackageConfigSchema,
   Nullable,
   PartialInitConfig,
-  ValidCommand,
+  ValidInitConfig,
 } from "./types";
 
 interface IErrorInfo {
@@ -15,7 +14,7 @@ interface IErrorInfo {
 }
 
 interface IValidateErrors {
-  emptyEventOrMatch: IErrorInfo;
+  emptySomeProperty: IErrorInfo;
 }
 
 type PrefixToKeys<T> = {
@@ -30,7 +29,7 @@ class ConfigValidator {
   public errorMessage: Nullable<string> = null;
   private validator: ValidateFunction;
   private errorTemplates: IValidateErrors = {
-    emptyEventOrMatch: {
+    emptySomeProperty: {
       message:
         'some property of "match", "event", ("cmd" or "vscodeTask") are empty in commands',
       instancePath: "settings.json",
@@ -51,15 +50,11 @@ class ConfigValidator {
     return Object.fromEntries(entriesWithPrefix) as ConfigSchema;
   }
 
-  private isValidCommands(config: PartialInitConfig): boolean {
-    const { commands } = config;
-    if (commands != undefined && commands.length > 0) {
-      return commands.every(({ event, match, cmd, vscodeTask }) => {
-        const isTask: boolean = Boolean(cmd || vscodeTask);
-        return event && match && isTask;
-      });
-    }
-    return false;
+  private isValidCommands({ commands }: PartialInitConfig): boolean {
+    return commands.every(({ event, match, cmd, vscodeTask }) => {
+      const isTask: boolean = Boolean(cmd || vscodeTask);
+      return event && match && isTask;
+    });
   }
 
   private getValidLine(items: Array<Nullable<string>>): Nullable<string> {
@@ -81,7 +76,7 @@ class ConfigValidator {
   private getErrorMsg(isValidCommands: boolean): Nullable<string> {
     const startOfMsg: string = "Config validation error in settings.json: \n";
     const errorCommands = !isValidCommands
-      ? [this.errorTemplates.emptyEventOrMatch]
+      ? [this.errorTemplates.emptySomeProperty]
       : [];
     const errors = [...errorCommands, ...(this.validator.errors ?? [])];
     return (
@@ -95,9 +90,7 @@ class ConfigValidator {
     );
   }
 
-  public validate(
-    config: PartialInitConfig
-  ): config is InitConfig<ValidCommand> {
+  public validate(config: PartialInitConfig): config is ValidInitConfig {
     const isValidByScheme: boolean = this.validator(
       this.getConfigSchema(config)
     );

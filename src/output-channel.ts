@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import {
   EnabledState,
   ICommandValue,
-  OutputReservedKeys,
+  OutputReservedKey,
   PreparedCommand,
 } from "./types";
 import { isCmdShell } from "./utils";
@@ -16,7 +16,7 @@ class OutputChannel {
   }
 
   public showError(message: string): void {
-    this.showMessage(`${OutputReservedKeys.Error} ${message}`);
+    this.showMessage(`${OutputReservedKey.Error} ${message}`);
   }
 
   public showEnabledState({
@@ -35,12 +35,12 @@ class OutputChannel {
   }
 
   public showConfigReload(): void {
-    this.showMessage(OutputReservedKeys.Reload);
+    this.showMessage(OutputReservedKey.Reload);
   }
 
   public showHandleMessage(): void {
     this.showMessage("");
-    this.showMessage(`${OutputReservedKeys.EventHandled} ...`);
+    this.showMessage(`${OutputReservedKey.EventHandled} ...`);
   }
 
   public showProcess(
@@ -51,9 +51,9 @@ class OutputChannel {
   }
 
   public showTask({ type, value }: ICommandValue): void {
-    const taskType: OutputReservedKeys = isCmdShell(type, value)
-      ? OutputReservedKeys.Cmd
-      : OutputReservedKeys.Task;
+    const taskType: OutputReservedKey = isCmdShell(type, value)
+      ? OutputReservedKey.Cmd
+      : OutputReservedKey.Task;
     this.showMessage(`${taskType} ${value}`);
   }
 

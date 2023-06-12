@@ -6,15 +6,15 @@ import {
   ICommandValue,
   IDocumentUriMap,
   IExecOptions,
-  InitConfig,
   Nullable,
-  PartialInitCommand,
   PreparedCommand,
   PreparedConfig,
   Event,
   ValidCommand,
   IPackageConfigSchema,
   PartialInitConfig,
+  ValidInitConfig,
+  WorkspaceConfig,
 } from "./types";
 
 class ConfigController {
@@ -38,7 +38,7 @@ class ConfigController {
 
   private getPreparedCommands(
     commands: ValidCommand[],
-    commonShell: InitConfig<PartialInitCommand>["shell"]
+    commonShell: PartialInitConfig["shell"]
   ): PreparedCommand[] {
     const prepareCommand = (command: ValidCommand): PreparedCommand => {
       const {
@@ -62,7 +62,7 @@ class ConfigController {
     return commands.map(prepareCommand);
   }
 
-  private getPreparedConfig(config: InitConfig<ValidCommand>): PreparedConfig {
+  private getPreparedConfig(config: ValidInitConfig): PreparedConfig {
     return {
       ...config,
       commands: this.getPreparedCommands(config.commands, config.shell),
@@ -88,8 +88,8 @@ class ConfigController {
     return this.data?.isSyncRunEvents === true;
   }
 
-  public get isCommands(): boolean {
-    return (this.data?.commands || []).length > 0;
+  public isCommands(config: WorkspaceConfig): config is PartialInitConfig {
+    return (config.commands || []).length > 0;
   }
 
   public get isValidConfig(): boolean {

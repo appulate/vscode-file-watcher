@@ -65,11 +65,15 @@ export type PreparedCommand = Omit<
 > &
   ICmdOptions;
 
-export type InitConfig<T> = Partial<IConfig<T>> & {
+type InitConfig<T> = Partial<IConfig<T>> & {
   readonly commands: IConfig<T>["commands"];
 };
 
-export type PartialInitConfig = Partial<IConfig<PartialInitCommand>>;
+export type WorkspaceConfig = Partial<IConfig<PartialInitCommand>>;
+
+export type PartialInitConfig = InitConfig<PartialInitCommand>;
+
+export type ValidInitConfig = InitConfig<ValidCommand>;
 
 export type PreparedConfig = InitConfig<PreparedCommand>;
 
@@ -120,7 +124,7 @@ export enum EnabledState {
   Disable = "disabled",
 }
 
-export enum OutputReservedKeys {
+export enum OutputReservedKey {
   Error = "[error]",
   Cmd = "[cmd]",
   Task = "[vscode-task]",

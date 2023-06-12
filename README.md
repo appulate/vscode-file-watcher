@@ -41,7 +41,7 @@ Commands support placeholders similar to tasks.json.
 * ${workspaceRoot}: **case insensitive** workspace root folder
 * ${workspaceRelativeDir}: **case insensitive** is the file relative path to the workspaceRoot
 * ${currentWorkspace}: **case insensitive** current working folder
-* ${currentRelativeWorkspace}: **case insensitive** is the file relative path to the current working folder
+* ${currentRelativeWorkspace}: **case insensitive** file relative path to the current working folder
 * ${file}: path of tracking file
 * ${fileOld}: path of tracking file when renaming
 * ${fileBasename}: saved file's basename

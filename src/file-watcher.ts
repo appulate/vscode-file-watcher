@@ -10,7 +10,7 @@ import {
   PreparedConfig,
   Nullable,
   IPackage,
-  PartialInitConfig,
+  WorkspaceConfig,
 } from "./types";
 
 class FileWatcher {
@@ -34,8 +34,8 @@ class FileWatcher {
   public loadConfig(): void {
     const config = vscode.workspace.getConfiguration(
       "filewatcher"
-    ) as PartialInitConfig;
-    if ((config.commands || []).length > 0) {
+    ) as WorkspaceConfig;
+    if (this.configController.isCommands(config)) {
       const isLoad: boolean = this.configController.load(config);
       const preparedConfig: Nullable<PreparedConfig> =
         this.configController.data;
