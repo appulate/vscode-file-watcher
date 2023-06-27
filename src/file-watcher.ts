@@ -1,53 +1,65 @@
-import { exec } from "child_process";
 import * as vscode from "vscode";
+import CommandRunner from "./command-runner";
+import ConfigController from "./config-controller";
+import OutputChannel from "./output-channel";
 import StatusBar from "./status-bar";
 import {
-  ICommand,
   IEventConfig,
-  IPartialCommand,
-  IDocumentUriMap,
   StatusType,
-  IConfig,
+  PreparedCommand,
+  PreparedConfig,
+  Nullable,
+  IPackage,
+  WorkspaceConfig,
 } from "./types";
-import { getReplacedCmd } from "./utils";
 
 class FileWatcher {
-  private outputChannel: vscode.OutputChannel =
-    vscode.window.createOutputChannel("File Watcher");
-  private config!: Partial<IConfig>;
-  private isRunProcess: boolean = false;
-  public statusBar: StatusBar = new StatusBar(() => this.isRunProcess);
+  public outputChannel: OutputChannel = new OutputChannel();
+  private packageJson: IPackage = this.context.extension.packageJSON;
+  private name: string = this.packageJson.displayName;
+  private version: string = this.packageJson.version;
+  private configController: ConfigController = new ConfigController(
+    this.packageJson.contributes.configuration
+  );
+  private commandRunner: CommandRunner = new CommandRunner(this.outputChannel);
+  private statusBar: StatusBar = new StatusBar(
+    () => this.commandRunner.isRunProcess
+  );
   private eventRunPromise: Promise<void> = Promise.resolve();
-
   public constructor(private context: vscode.ExtensionContext) {
+    this.isEnabled = true;
     this.loadConfig();
   }
 
   public loadConfig(): void {
-    const configName: string[] = [
-      "filewatcher",
-      "appulateinc.filewatcher",
-    ].filter((name) => {
-      const commands: IPartialCommand[] | undefined = vscode.workspace
-        .getConfiguration(name)
-        .get<ICommand[]>("commands");
-      return commands !== undefined && commands.length > 0;
-    });
-
-    this.config = vscode.workspace.getConfiguration(
-      configName[0]
-    ) as Partial<IConfig>;
-
-    this.statusBar.loadConfig({
-      isClearStatusBar: Boolean(this.config.isClearStatusBar),
-      statusBarDelay: this.config.statusBarDelay,
-    });
+    const config = vscode.workspace.getConfiguration(
+      "filewatcher"
+    ) as WorkspaceConfig;
+    if (this.configController.isCommands(config)) {
+      const isLoad: boolean = this.configController.load(config);
+      const preparedConfig: Nullable<PreparedConfig> =
+        this.configController.data;
+      if (this.configController.isPreparedConfig(isLoad, preparedConfig)) {
+        this.statusBar.loadConfig({
+          isClearStatusBar: preparedConfig.isClearStatusBar,
+          statusBarDelay: preparedConfig.statusBarDelay,
+          successColor: preparedConfig.successTextColor,
+          runColor: preparedConfig.runTextColor,
+        });
+        this.outputChannel.showConfigReload();
+        this.statusBar.showConfigReload();
+      } else {
+        this.showConfigError();
+      }
+    }
   }
 
-  public showEnabledState(): void {
-    this.showOutputMessage(
-      `File Watcher ${this.isEnabled ? "enabled" : "disabled"}.`
-    );
+  private showConfigError(): void {
+    const { errorMessage } = this.configController;
+    if (errorMessage != null) {
+      this.outputChannel.showError(errorMessage);
+    }
+    this.statusBar.showError();
   }
 
   public get isEnabled(): boolean {
@@ -56,101 +68,39 @@ class FileWatcher {
 
   public set isEnabled(value: boolean) {
     this.context.globalState.update("isEnabled", value);
-    this.showEnabledState();
-  }
-
-  private get execOption(): { shell: string } | null {
-    const shell: string | undefined = this.config.shell;
-    return shell ? { shell } : null;
-  }
-
-  public get isAutoClearConsole(): boolean {
-    return !this.isRunProcess && this.config.autoClearConsole === true;
-  }
-
-  public get commands(): IPartialCommand[] {
-    return this.config.commands ?? [];
-  }
-
-  public showOutputMessage(message: string): void {
-    this.outputChannel.appendLine(message);
-  }
-
-  private isFileNameValid(documentUri: vscode.Uri, pattern?: string): boolean {
-    return pattern != undefined && new RegExp(pattern).test(documentUri.fsPath);
-  }
-
-  private getCommandsByConfigs(
-    commandConfigs: IPartialCommand[],
-    documentUriMap: IDocumentUriMap
-  ): ICommand[] {
-    return commandConfigs.reduce((commands: ICommand[], config) => {
-      const { cmd, event, match, isAsync } = config;
-      if (cmd != undefined && event != undefined && match != undefined) {
-        commands.push({
-          cmd: getReplacedCmd(documentUriMap, cmd),
-          isAsync: Boolean(isAsync),
-          event,
-          match,
-        });
-      }
-      return commands;
-    }, []);
-  }
-
-  private onStartedProcessHandler({ event, cmd, match }: ICommand): void {
-    this.isRunProcess = true;
-    this.statusBar.showRun();
-    this.showOutputMessage(`[${event}] for pattern "${match}" started`);
-    this.showOutputMessage(`[cmd] ${cmd}`);
-  }
-
-  private onFinishProcessHandler({ event, match }: ICommand): void {
-    this.isRunProcess = false;
-    this.showOutputMessage(`[${event}]: for pattern "${match}" finished`);
-  }
-
-  private async runProcessAsync(cmd: string): Promise<StatusType> {
-    return new Promise((resolve) => {
-      exec(cmd, this.execOption, (_, stdout, stderr) => {
-        if (stderr != "") {
-          this.showOutputMessage(`[error] ${stderr}`);
-          resolve(StatusType.Error);
-          return;
-        }
-        this.showOutputMessage(stdout as string);
-        resolve(StatusType.Success);
-      });
+    this.outputChannel.showEnabledState({
+      name: this.name,
+      version: this.version,
+      isEnable: this.isEnabled,
     });
   }
 
-  private async runCommandsAsync(
-    commands: ICommand[]
-  ): Promise<Array<StatusType | Promise<StatusType>>> {
-    const commandsResult: Array<StatusType | Promise<StatusType>> = [];
+  private get isAutoClearConsole(): boolean {
+    return (
+      !this.commandRunner.isRunProcess && this.configController.isClearConsole
+    );
+  }
 
-    for (const command of commands) {
-      this.onStartedProcessHandler(command);
-      const proccessPromise: Promise<StatusType> = this.runProcessAsync(
-        command.cmd
-      );
-      proccessPromise.finally(() => this.onFinishProcessHandler(command));
-
-      if (command.isAsync) {
-        commandsResult.push(proccessPromise);
-      } else {
-        commandsResult.push(await proccessPromise);
-      }
-    }
-
-    return commandsResult;
+  private getProcessHandlers() {
+    return {
+      onStarted: (command: PreparedCommand) => {
+        this.statusBar.showRun();
+        this.outputChannel.showProcess(command, "started");
+        this.outputChannel.showTask(command.cmd);
+      },
+      onFinish: (command: PreparedCommand) => {
+        this.outputChannel.showProcess(command, "finished");
+      },
+    };
   }
 
   private async showStatusResultAsync(
     statusResultPromise: Array<StatusType | Promise<StatusType>>
   ): Promise<void> {
     if (statusResultPromise.length > 0) {
-      const commandsResult: string[] = await Promise.all(statusResultPromise);
+      const commandsResult: StatusType[] = await Promise.all(
+        statusResultPromise
+      );
       if (commandsResult.includes(StatusType.Error)) {
         this.statusBar.showError();
       } else {
@@ -166,25 +116,20 @@ class FileWatcher {
     return new Promise(async (resolve) => {
       const statusResult: Array<StatusType | Promise<StatusType>> = [];
 
-      for (const { documentUri, documentOldUri } of documentsUri) {
-        const commandConfigs: IPartialCommand[] = this.commands.filter(
-          (cfg) =>
-            event === cfg.event &&
-            !this.isFileNameValid(documentUri, cfg.notMatch) &&
-            this.isFileNameValid(documentUri, cfg.match)
-        );
-
-        if (commandConfigs.length === 0) {
-          continue;
+      for (const documentMapUri of documentsUri) {
+        const validCommands: PreparedCommand[] =
+          this.configController.getValidCommandsByEvent(event, documentMapUri);
+        if (validCommands.length > 0) {
+          if (this.isAutoClearConsole) {
+            this.outputChannel.clear();
+          }
+          this.outputChannel.showHandleMessage();
+          const statusTypes = await this.commandRunner.runCommandsAsync(
+            validCommands,
+            this.getProcessHandlers()
+          );
+          statusResult.push(...statusTypes);
         }
-
-        this.showOutputMessage("");
-        this.showOutputMessage("[Event handled] ...");
-        const commands: ICommand[] = this.getCommandsByConfigs(commandConfigs, {
-          documentUri,
-          documentOldUri,
-        });
-        statusResult.push(...(await this.runCommandsAsync(commands)));
       }
 
       await this.showStatusResultAsync(statusResult);
@@ -193,20 +138,10 @@ class FileWatcher {
   }
 
   public async eventHandlerAsync(eventConfig: IEventConfig): Promise<void> {
-    if (!this.isEnabled) {
+    if (!this.isEnabled || !this.configController.isValidConfig) {
       return;
     }
-
-    if (this.isAutoClearConsole) {
-      this.outputChannel.clear();
-    }
-
-    if (this.commands.length === 0) {
-      this.showOutputMessage("[error] Settings sections are empty");
-      return;
-    }
-
-    if (Boolean(this.config.isSyncRunEvents)) {
+    if (this.configController.isSyncRunEvents) {
       await this.eventRunPromise;
     }
 

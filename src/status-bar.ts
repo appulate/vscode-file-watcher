@@ -1,6 +1,18 @@
 import * as vscode from "vscode";
-import { IColors } from "./types";
 import { getThemeColors } from "./utils";
+import { IColors, RegisterCommands } from "./types";
+
+enum StatusIcon {
+  Primary = "$(telescope)",
+  Loading = "$(loading~spin)",
+}
+
+interface IStatusBarConfig {
+  readonly isClearStatusBar: boolean;
+  readonly statusBarDelay: number;
+  readonly successColor: string;
+  readonly runColor: string;
+}
 
 const STATUS_DELAY_DEFAULT: number = 5000;
 const PRIORITY_SHOW: number = 1000;
@@ -11,36 +23,51 @@ export default class StatusBar {
       vscode.StatusBarAlignment.Left,
       PRIORITY_SHOW
     );
-  private colors: IColors = getThemeColors(this.statusBarItem.color);
+  private defaultColors: IColors = getThemeColors(this.statusBarItem.color);
+  private colors: IColors = { ...this.defaultColors };
   private delay!: number;
-  private isClear!: boolean;
+  private isAutoClear!: boolean;
 
-  constructor(private isRunProcess: () => boolean) {
+  public constructor(private isRunProcess: () => boolean) {
     this.initStatusBar();
   }
 
   public loadConfig({
     isClearStatusBar,
     statusBarDelay,
-  }: {
-    isClearStatusBar: boolean;
-    statusBarDelay?: number;
-  }): void {
-    this.isClear = isClearStatusBar;
+    successColor,
+    runColor,
+  }: Partial<IStatusBarConfig>): void {
+    this.isAutoClear = Boolean(isClearStatusBar);
     this.delay = statusBarDelay || STATUS_DELAY_DEFAULT;
+    this.colors.success = successColor
+      ? successColor
+      : this.defaultColors.success;
+    this.colors.run = runColor ? runColor : this.defaultColors.run;
   }
-
-  public showMessage(message: string): void {
+  private showMessage(message: string): void {
     this.statusBarItem.text = message;
   }
 
-  private setStatusBarColor(color?: vscode.ThemeColor): void {
+  public showConfigReload(): void {
+    this.normalizeStatusBar(false);
+    this.showMessage(`${StatusIcon.Primary} ~ config reloaded`);
+  }
+
+  private setStatusBarColor(color?: vscode.ThemeColor | string): void {
     this.statusBarItem.color = color;
   }
 
-  public normalizeStatusBar(): void {
-    this.setStatusBarColor(this.colors.defaultColor);
-    this.showMessage("File Watcher");
+  private setStatusBarBackground(color?: vscode.ThemeColor | string): void {
+    this.statusBarItem.backgroundColor = color;
+  }
+
+  private normalizeStatusBar(isIcon = true): void {
+    this.setStatusBarBackground(this.colors.default);
+    this.setStatusBarColor(this.colors.default);
+    if (isIcon) {
+      this.showMessage(StatusIcon.Primary);
+    }
   }
 
   private normalizeStatusWithDelay(): void {
@@ -52,25 +79,24 @@ export default class StatusBar {
   }
 
   public showRun(): void {
-    const runIcon: string = "$(pulse)";
-    this.setStatusBarColor(this.colors.runColor);
-    this.showMessage(`${runIcon} File Watcher Run...`);
+    this.setStatusBarBackground(this.colors.default);
+    this.setStatusBarColor(this.colors.run);
+    this.showMessage(`${StatusIcon.Loading} Watcher Run...`);
   }
 
   public showSuccess(): void {
-    const successIcon: string = "$(check)";
-    this.setStatusBarColor(this.colors.successColor);
-    this.showMessage(`${successIcon} File Watcher Success`);
-    if (this.isClear) {
+    this.setStatusBarBackground(this.colors.default);
+    this.setStatusBarColor(this.colors.success);
+    this.showMessage(`${StatusIcon.Primary} Success`);
+    if (this.isAutoClear) {
       this.normalizeStatusWithDelay();
     }
   }
 
   public showError(): void {
-    const stopIcon: string = "$(stop)";
-    this.setStatusBarColor(this.colors.errorColor);
-    this.showMessage(`${stopIcon} File Watcher Error`);
-    if (this.isClear) {
+    this.setStatusBarBackground(this.colors.error);
+    this.showMessage(`${StatusIcon.Primary} Error`);
+    if (this.isAutoClear) {
       this.normalizeStatusWithDelay();
     }
   }
@@ -78,5 +104,6 @@ export default class StatusBar {
   private initStatusBar(): void {
     this.normalizeStatusBar();
     this.statusBarItem.show();
+    this.statusBarItem.command = RegisterCommands.FocusOutput;
   }
 }

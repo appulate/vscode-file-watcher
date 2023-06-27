@@ -23,7 +23,7 @@
                     </dict>
                 </dict>
                 <key>match</key>
-                <string>(\[onFolderChange\]).*(\".+\")</string>
+                <string>(\[(?:onFolderChange|onFolderCreate|onFolderDelete)\]).*(\".+\")</string>
                 <key>name</key>
                 <string>file-watcher.folderChange</string>
             </dict>
@@ -42,7 +42,7 @@
                     </dict>
                 </dict>
                 <key>match</key>
-                <string>(\[onFileChange\]).*(\".+\")</string>
+                <string>(\[(?:onFileChange|onFileChangeImmediate|onFileRename|onFileDelete|onFileCreate)\]).*(\".+\")</string>
                 <key>name</key>
                 <string>file-watcher.fileChange</string>
             </dict>
@@ -61,7 +61,7 @@
                     </dict>
                 </dict>
                 <key>match</key>
-                <string>(\[cmd\])(.*)</string>
+                <string>(\[(?:cmd|vscode-task)\])(.*)</string>
                 <key>name</key>
                 <string>file-watcher.cmd</string>
             </dict>
@@ -70,6 +70,12 @@
                 <string>\[(?i:(Down|Error|Failure|Fail|Fatal))\]</string>
                 <key>name</key>
                 <string>token.error-token</string>
+            </dict>
+            <dict>
+                <key>match</key>
+                <string>\[Config reloaded\]</string>
+                <key>name</key>
+                <string>token.info-token</string>
             </dict>
         </array>
     </dict>
