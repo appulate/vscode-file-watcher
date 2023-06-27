@@ -9,7 +9,7 @@
 	},
 	"publisher": "appulate",
 	"license": "MIT",
-	"version": "1.1.8",
+	"version": "2.0.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/appulate/vscode-file-watcher.git"
@@ -229,7 +229,7 @@
 		"@types/node": "^18.7.16",
 		"@types/vscode": "^1.71.0",
 		"tslint": "^6.1.3",
-		"typescript": "^4.8.3"
+		"typescript": "^5.1.3"
 	},
 	"dependencies": {
 		"ajv": "^8.12.0",
