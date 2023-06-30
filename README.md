@@ -48,6 +48,7 @@ Commands support placeholders similar to tasks.json.
 * ${fileDirname}: directory name of tracking file
 * ${fileExtname}: extension (including .) of tracking file
 * ${fileBasenameNoExt}: tracking file's basename without extension
+* ${fileBasenameNoExtAll}: tracking file's basename without all extensions
 
 Samples
 =========
